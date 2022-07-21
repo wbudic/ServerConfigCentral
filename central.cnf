@@ -1,0 +1,20 @@
+!CNF2.5
+<<<CONST
+        Domain = AF_INET
+        Type = SOCK_STREAM
+        Proto = tcp
+        LocalHost = 192.168.1.101
+        LocalPort =  1028
+        PeerPort = 1028
+        PeerHost = 192.168.1.101
+        Listen = 3
+        ReusePort = 1
+        public_dir = ./configs
+>>>
+
+# Location of config files is either in the servers root or under the public_dir specified under CONST.
+<<@<@config_files<
+
+sample1.cnf
+sample2.cnf
+>>>

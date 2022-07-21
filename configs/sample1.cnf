@@ -1,0 +1,17 @@
+!CNF2.5
+<<PAGE<CONST>
+<html><head></head>
+<body>
+	<h2>Hello World!</h2>
+</body>
+<html>
+>>
+
+###
+# We can limit to which range of IP addresses have access to this config file.
+# Individual one only can be here set, if a full IP address. 
+# Then only one client has access. 
+# Dissabling this property, or setting to <IP_RANGE_ACCEPT<*.*.*.*>> 
+# gives to all access, same is true if it is missing in any of the files.
+#
+<<IP_RANGE_ACCEPT<192.168.*.*>>
