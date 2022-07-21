@@ -2,7 +2,7 @@
 
 # To open port on linux:
 # sudo ufw allow perl-cnf
-# Witch is set/found in /etc/services
+# Which is set/found in /etc/services
 # perl-cnf	1028/tcp			# PerlCnf server port.
 use warnings; use strict;
 use lib "./local";
