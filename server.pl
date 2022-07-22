@@ -21,20 +21,18 @@ while(1) {
         my $client_address = $client->peerhost();
         my $client_port = $client->peerport();
 
-        print "Connection from: $client_address($client_port)\n";
+        print "Connection from: $client_address ($client_port)\n";
 
-
-        my $cmd = " "; my $rl = sysread $client, $cmd, 1024;
+        my $cmd = " "; my $rl = sysread $client, $cmd, 1024;        
+        $client->send(`hostname`. scalar localtime . "\n");    
         print "Received cmd: $cmd\n";
-        $client->send(`hostname`. scalar localtime . "\n");       
-        
         if( $cmd =~ /^list/ ){
              list($client,$cmd);
         }elsif
           ( $cmd =~ /^prp/ ){
              property($client, $cmd)
           }                        
-        $client->shutdown(CNFCentral{'SHUT_WR'});
+        $client->shutdown($$server->{'CLIENT_SHUTDOWN'});
         print "Connection closed: $client_address($client_port)\n";
     }
 }
@@ -67,15 +65,7 @@ sub property {
     if( !$rep ){
         $data = "<<error<1>Congiguration '$path' not found!\nFailed to retrieve: $cmd>>\n";
         print "$data\n";
-    }else{        
-        #
-        # Notice - Using just: $$rep->{$name}, without blessing might not be accessible in future. 
-        # And also such direct derefence might internally create temporary object references, 
-        # for each statement. However, the refference was created and owned by main::Server.pl
-        # For now, I am not using blessings, disabling it.
-        # Possible errors in future could produce  hash reference errors.
-        #
-        ### $rep = bless $rep, 'CNFParser';                
+    }else{              
         $data = $$rep->constant($name);        
         if(!$data){
            $data = $$rep->anon($name);
@@ -88,7 +78,7 @@ sub property {
 sub list {
     my ($client, $cmd) = @_;
     my $pub  = $cnf->{public_dir};
-    my $path = substr $cmd, 5; 
+    my $path = length($cmd) > 4 ? substr $cmd, 5 : ""; 
     my $data ="";
     $path =~ s/^[\/|~|\.]+//g; 
     $path = "$pub/$path";

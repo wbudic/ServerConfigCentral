@@ -12,9 +12,12 @@
         public_dir = ./configs
 >>>
 
+
+
 # Location of config files is either in the servers root or under the public_dir specified under CONST.
 <<@<@config_files<
 
 sample1.cnf
 sample2.cnf
 >>>
+<<$DEBUG<0>>>
