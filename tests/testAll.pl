@@ -9,6 +9,7 @@ require TestManager;
 ###
 #  Notice All test are to be run from the project directory.
 #  Not in the test directory.
+#  i.e.: perl ./tests/testAll.pl
 ###
 
 my $manager = TestManager->new();
