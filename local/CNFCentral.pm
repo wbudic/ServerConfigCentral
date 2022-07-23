@@ -46,6 +46,31 @@ sub configDumpENV {
     return shift -> {parser} -> dumpENV();
 }
 
+###
+# Server uses following routine connection request stage.
+###
+sub generateSessionToken {
+    my ($provided,@c) = shift;
+    if (!$provided){
+         @c = "1234567890ABCDEFGHIJKLMWCNFCENTRAL" =~ m/./g
+       }else{
+         @c = $provided =~ m/./g
+       }
+    my ($date,$code) = (scalar localtime, undef);    
+    if(@c<28){    
+        my $err =  qq(Error ->[@c] Pick token is less then 28 digits long.\n\t);
+        die $err
+    }
+    $code .= sprintf ("%s%s", $c[rand(@c)], $c[rand(@c)])foreach(1..8);    
+    return qq(<session<$date>>$code>>);
+}
+###
+# Client/Server uses following to obtain token date and value.
+###
+sub sessionTokenToArray { 
+    my $token = shift;
+    return ($token =~ m/<session<(.*)>>(.*)>>/)  
+}
 
 sub checkIPrange {
     my ($sip, $srange) = @_;
