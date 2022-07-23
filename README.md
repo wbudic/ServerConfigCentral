@@ -7,6 +7,8 @@ The current version is  **1.0** and is in the **Moon** stage of the development 
 
 ## The Concept
 
+---
+
 * The CNFServer instance runs on the server, to provide multiple clients access to the same CNF application configuration.
   * CNFServer manages multiple connections and perform its own container based access and possible client interaction.
 * Provide direct socket connection between devices, bypassing any other external tools requirements or libraries.
@@ -33,7 +35,54 @@ stateDiagram-v2
     NETWORK-->CNFClient    
 ```
 
+
+
+## Protocols
+
+---
+
+Protocol is inbuilt part of the system and channel. Not based on any standards.
+It doesn't require or goes through any additional network or system layers.
+
+* Protocol between Client and Server are here specified.
+  
+  * Connection request and response is server sending an stamp.
+  * General plain interaction is client sends command, and server response and termination.
+  * Authentication protocol required commands.
+
+---
+
+### Authentication Protocol
+
+---
+
+* The Server generates on first run an server signature unique hash code if not found.
+  * Client receives this token during connection stage.
+    * The hash is used for authentication request part.
+  * The client next ends an **auth** request to server.
+  * Server authenticates and send either error or the session token.
+  * Both the hash code and the session tokens are further on used. 
+    * To perform further socket session encryption I/O during communication.
+    * Each Server has its own port and hash, and each client has its own session.
+    * Datagrams of others can't read or process as their are scrambled on the network.
+
+```mermaid
+
+sequenceDiagram
+      Client-->>Server: On socket connection request
+      Server-->>Client: Connection <<session<{date}>{server hash}>> response
+      Client->>+Server: <<cmd<auth>>> request
+      Server->>-Client: Response <<session<{date}>{session token}>>
+      Client-->>+Server: Further cmd encrypted
+      Server-->>-Client: Further response encrypted
+      Client->>Server:End
+    
+```
+
+
 ## Perl CNF
+
+---
 
 * **Perl based Configuration Network File Format Parser.**
   * Provides a user friendly, property value pair processing, easy configuration and processing under special specifications.  
@@ -41,6 +90,10 @@ stateDiagram-v2
 
 For further info and details, please visit [PerlCNF Project](https://github.com/wbudic/PerlCNF/blob/master/README.md).
 
+---
+
 ## Installation
+
+---
 
   Info is not available yet.
