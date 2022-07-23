@@ -12,6 +12,7 @@ use constant VERSION => '1.0';
 
 sub client {    my ($class, $config, %self) = @_;    
     $config = 'central.cnf' if ! $config;
+    if(! -e $config){$config = "~/.config/$config"}
     $self{'parser'} = CNFParser-> new (
         # Perl compiler must pass its export constants to the config as attributes, 
         # otherwise they are plain strings if specified only as such in the config.
@@ -28,14 +29,19 @@ sub client {    my ($class, $config, %self) = @_;
 }
 
 sub server {    my ($class, $config, %self) = @_; 
-    $config = 'central.cnf' if ! $config;   
+    $config = 'central.cnf' if ! $config;
+    if(! -e $config){$config = "~/.config/$config"}
     $self{'parser'} = CNFParser-> new ($config, {Domain => AF_INET, Type => SOCK_STREAM, Proto => 'tcp'});    
     $self{'socket'} = IO::Socket->new(%{$self{'parser'}})     
        or die "Cannot open socket, is the server running? -> $IO::Socket::errstr\n";    
+    $self{'CLIENT_SHUTDOWN'}  = SHUT_WR;
     bless \%self, $class;    
     return \%self;
 }
 
+sub config {
+    return shift -> {parser};
+}
 sub configDumpENV {
     return shift -> {parser} -> dumpENV();
 }
