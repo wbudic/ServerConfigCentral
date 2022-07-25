@@ -35,8 +35,6 @@ stateDiagram-v2
     NETWORK-->CNFClient    
 ```
 
-
-
 ## Protocols
 
 ---
