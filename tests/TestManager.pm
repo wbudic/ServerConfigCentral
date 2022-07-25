@@ -25,10 +25,16 @@ sub case {
     my ($self, $out) =@_;
 print "\tCase ".$self->{test_cnt}.": $out\n"
 }
+sub subcase {
+    my ($self, $out) =@_;
+    my $sub_cnt = ++$self->{sub_cnt};
+    print "\t   Case ".$self->{test_cnt}.".$sub_cnt: $out\n"
+}
 
 sub nextCase {
     my ($self) =@_;
-    $self->{test_cnt}++
+    $self->{test_cnt}++;
+    $self->{sub_cnt}=0
 }
 
 ###
@@ -37,13 +43,17 @@ sub nextCase {
 # To display code where error occured.
 ###
 sub dumpTermination {
-    my ( $failed, $comment, $past, $cterminated) = @_;
-    my ($file,$lnErr) = ($failed =~ m/.*\s*at\s*(.*)\sline\s*(\d*)\.$/); 
-    $file = $0 if not $file; 
+    my ($failed, $comment, $past, $cterminated) = @_;
+    my ($file,$lnErr) = ($comment =~ m/.*\s*at\s*(.*)\sline\s*(\d*)\.$/); 
+    
+    # if(!$file){
+    #     $file = $0;
+    #     $lnErr= 0; print $comment;
+    # }
     open (my $flh, '<:perlio', $file) or die("Error $! opening file: $file");
           my @slurp = <$flh>;
     close $flh;
-    print BOLD BRIGHT_RED "Test file failed $failed";
+    print BOLD BRIGHT_RED "Test file failed -> $comment";
     our $DEC = "%0".(length($slurp[-1]) + 1)."d   ";
     for(my $i=0; $i<@slurp;$i++)  { 
         local $. = $i + 1;

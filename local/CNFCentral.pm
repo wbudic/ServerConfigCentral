@@ -7,8 +7,12 @@ package CNFCentral;
 
 use warnings; use strict;
 use IO::Socket qw(AF_INET AF_UNIX SOCK_STREAM SHUT_WR inet_aton);
+use Crypt::CBC;
+use Crypt::Blowfish;
 require CNFParser;  
 use constant VERSION => '1.0';
+
+our $CBC_IV = pack("H*", "C00000000000000F");
 
 sub client {    my ($class, $config, %self) = @_;    
     $config = 'central.cnf' if ! $config;
@@ -21,7 +25,7 @@ sub client {    my ($class, $config, %self) = @_;
         # Following is list of keys to remove from the config as they are server properties.
         # We automate the whole ordeal both client and server to have the same config file. 
         ['LocalPort',  'LocalHost', 'Listen' ,'ReusePort']
-    );    
+    );
     $self{'socket'} = IO::Socket->new(%{$self{'parser'}}) 
        or die "Cannot open socket, is the server running? -> $IO::Socket::errstr\n";
     bless \%self, $class;    
@@ -37,6 +41,31 @@ sub server {    my ($class, $config, %self) = @_;
     $self{'CLIENT_SHUTDOWN'}  = SHUT_WR;
     bless \%self, $class;    
     return \%self;
+}
+
+sub new {  
+    my ($self) = @_;
+    bless {}, $self;    
+}
+
+sub initCBC { my ($self, $key) = @_;
+    $self->{'cbc'} =  Crypt::CBC->new( 
+         -cipher => "Blowfish",
+         -literal_key => 0,
+         -key => $key,
+         -iv =>$CBC_IV,
+         -header => 'none',
+         -padding => 'none',
+         -pbkdf=>'pbkdf2'
+    );
+}
+sub encrypt {my ($self, $text) = @_;
+    return unpack("H*", $self->{'cbc'}->encrypt($text));
+}
+sub decrypt {my ($self,$cipher) = @_;
+    my $ret = $self->{'cbc'}->decrypt(pack("H*",$cipher));
+    $ret =~ s/\0*$//g; #Zero always padded maybe?
+    return $ret;
 }
 
 sub config {
