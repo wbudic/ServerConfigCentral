@@ -7,15 +7,30 @@ require CNFCentral;
 
 my $manager = TestManager->new($0);
 
-try{
-    die &failed if not my $t =checkGenerateSessionToken();  
+try{   
+
+    ###
+    # Test encryption.
+    ###    
+    my $text = "Hello Wolrd!"; 
+    my $central =  CNFCentral-> new();
+       $central->initCBC(checkGenerateSessionToken());
+       my $ enc = $central -> encrypt($text);
+       $manager->subcase("enc -> [$enc]");
+       my $ dec = $central -> decrypt($enc);       
+       $manager->subcase("dec -> [$dec]");
+       
+    die &failed if not $text eq $dec;
+    #  
+
+    # Test session token.
+    die &failed if not my $t =checkGenerateSessionToken();   
     $manager-> nextCase();
     my @token = CNFCentral::sessionTokenToArray($t);
     die &failed if @token !=2;
     $manager->case("Token array contents -> [". join (', ', @token) . "]");
     $manager-> nextCase();
     die &failed if !checkGenerateSessionToken("ABCssssssssssssssssssssssss28");  
-    
     #
     print BOLD "Test cases have ", BRIGHT_GREEN ,"PASSED",RESET," for test file:", RESET WHITE, " $0\n", RESET;
 }
