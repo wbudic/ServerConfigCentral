@@ -11,12 +11,23 @@ use Crypt::CBC;
 use Crypt::Blowfish;
 require CNFParser;  
 use constant VERSION => '1.0';
+use constant CONFIG  => 'central.cnf';
 
-our $CBC_IV = pack("H*", "C00000000000000F");
+our $CBC_IV = "C00000000000000F";
+
+sub server {    my ($class, $config, %self) = @_; 
+    $config = defaultConfigFile($class, CONFIG) if ! $config;
+    $self{'parser'} = CNFParser-> new ($config, {Domain => AF_INET, Type => SOCK_STREAM, Proto => 'tcp'});
+    $self{'socket'} = IO::Socket->new(%{$self{'parser'}})     
+       or die "Cannot open socket, is the server running? -> $IO::Socket::errstr\n";    
+    $self{'CLIENT_SHUTDOWN'}  = SHUT_WR;
+    bless \%self, $class;    
+    return \%self;
+}
+
 
 sub client {    my ($class, $config, %self) = @_;    
-    $config = 'central.cnf' if ! $config;
-    if(! -e $config){$config = "~/.config/$config"}
+    $config = defaultConfigFile($class, CONFIG) if ! $config;
     $self{'parser'} = CNFParser-> new (
         # Perl compiler must pass its export constants to the config as attributes, 
         # otherwise they are plain strings if specified only as such in the config.
@@ -32,28 +43,39 @@ sub client {    my ($class, $config, %self) = @_;
     return \%self;
 }
 
-sub server {    my ($class, $config, %self) = @_; 
-    $config = 'central.cnf' if ! $config;
-    if(! -e $config){$config = "~/.config/$config"}
-    $self{'parser'} = CNFParser-> new ($config, {Domain => AF_INET, Type => SOCK_STREAM, Proto => 'tcp'});    
-    $self{'socket'} = IO::Socket->new(%{$self{'parser'}})     
-       or die "Cannot open socket, is the server running? -> $IO::Socket::errstr\n";    
-    $self{'CLIENT_SHUTDOWN'}  = SHUT_WR;
-    bless \%self, $class;    
-    return \%self;
+sub socketC {
+    my ($self) = @_;
+    my $parser = $self->{'parser'};
+    die if not $parser;
+    return  IO::Socket->new(%$parser) 
 }
+
 
 sub new {  
-    my ($self) = @_;
-    bless {}, $self;    
+    my ($self) = @_;    
+    bless { parser => CNFParser-> new (defaultConfigFile(CONFIG)) }, 
+    $self;
 }
 
-sub initCBC { my ($self, $key) = @_;
-    $self->{'cbc'} =  Crypt::CBC->new( 
+sub defaultConfigFile {
+    my ($self, $config) = @_; 
+    $config = $self if(scalar $self && !$config);
+    if(! -e $config){$config = "~/.config/$config"}
+    return  $config;
+}
+
+sub initCBC { my ($self, $token, $id) = @_;
+    my $parser = $self->{'parser'};
+    die if not $parser;
+    $id = $parser->anon('SERVER_ID');     
+    my @prp = sessionTokenToArray($self,$token);
+    die "Error: Invalid session token: $token [".join('|', @prp)."]" if @prp !=2;    
+    $self->{'session_key'} = qq($prp[1]-$id);    
+    $self->{'cbc'}  =  Crypt::CBC->new( 
          -cipher => "Blowfish",
          -literal_key => 0,
-         -key => $key,
-         -iv =>$CBC_IV,
+         -key =>  $self->{'session_key'},
+         -iv => pack("H*",$CBC_IV),
          -header => 'none',
          -padding => 'none',
          -pbkdf=>'pbkdf2'
@@ -74,9 +96,21 @@ sub config {
 sub configDumpENV {
     return shift -> {parser} -> dumpENV();
 }
+###
+# Method is similar to sub sessionTokenToArray but less stict in tag format.
+# It extracts <<NAME<INSTRUCTION>VALUE>> but also <<NAME<VALUE>>> name and value pair.
+# On return query by array size. As both are valid CNF tags.
+###
+sub tagCNFToArray { 
+    my ($self, $tag) = @_;
+    die "Invalid no. of parameteres passed." unless @_ == 2;    
+    my @r = ($tag =~ m/<<(.*)<(.+?)>+(.*)>+/);
+    pop @r if not $3;
+    return @r;
+}
 
 ###
-# Server uses following routine connection request stage.
+# Server uses following routine at connection request stage.
 ###
 sub generateSessionToken {
     my ($provided,@c) = shift;
@@ -91,14 +125,14 @@ sub generateSessionToken {
         die $err
     }
     $code .= sprintf ("%s%s", $c[rand(@c)], $c[rand(@c)])foreach(1..8);    
-    return qq(<session<$date>>$code>>);
+    return qq(<<session<$date>$code>>);
 }
 ###
 # Client/Server uses following to obtain token date and value.
 ###
 sub sessionTokenToArray { 
-    my $token = shift;
-    return ($token =~ m/<session<(.*)>>(.*)>>/)  
+    if(@_>1){shift} my $token = shift;
+    return ($token =~ m/<<session<(.*)>(.*)>>/)  
 }
 
 sub checkIPrange {

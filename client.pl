@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-use warnings; use strict;
+use warnings; use strict; use Syntax::Keyword::Try;
 use lib "./local";
 require CNFCentral;
 
@@ -8,12 +8,12 @@ require CNFCentral;
 my $central = CNFCentral -> client();
 my $socket  = $central   -> {'socket'};
 my $cmd;
+$socket->recv($cmd, 64);
+print "Connected: $cmd"; $cmd="";
 
 foreach my $a (@ARGV){
-    my $v = $a; $v =~ s/^-+.*[=:]//;
-    print "[$a] -> $v\n" if $central->config()->{'$DEBUG'};
-    if($a =~ m/~/g){print "Error: Directory substitution is not permited.\n"; exit 2;} 
-    elsif($a =~ m/^-+c/i)    {issueCommand($v) if $a ne $v}
+    my $v = $a; $v =~ s/^-+.*[=:]//;    
+    if($a =~ m/^-+c/i)       {issueCommand($v) if $a ne $v}
     elsif($a =~ m/^-+p/i)    {$cmd = "prp "; $cmd = $cmd .$v  if $a ne $v}
     elsif($a =~ m/^-+h|\?/i) {&printHelp;}
     elsif($a !~ m/^-+/)      {
@@ -22,27 +22,36 @@ foreach my $a (@ARGV){
            issueCommand($cmd);
            $cmd = ""
         }else{
-            issueCommand($a)
+           issueCommand($a)
         }
+        $socket -> close();    undef   $socket;
     }
     else{
-            print "Error: Don't understand argument: [$a]\n"; exit 2;
+           print "Error: Don't understand argument: [$a]\n"; exit 2;
     }    
+    $socket  = $central   -> socketC() if !$socket;
 }
 
-#$socket->send("list");
-#$socket -> send("prp list sample1/PAGE");
-sub issueCommand { my ($cmd, $buffer) = @_;
-    $socket->send($cmd);
-    do{
-        $socket->recv($buffer, 1024);
-        print $buffer;
-    }while(length ($buffer)>0);
+    #$socket=$central->socketC();
+if ($socket){
+    $socket->send('end');
+    $socket->close()
 }
 
-END{
-$socket->close() if $central;
+sub issueCommand { my ($cmd) = @_;
+    print "IssueCommand -> $cmd \n" if $central->config()->{'$DEBUG'};
+    try{ 
+        $socket->send($cmd);
+        my $read; my $buffer="";        
+        while(sysread $socket, $read, 1024){ $buffer .= $read}
+        print "Received: $buffer\n";
+    }catch{
+        print "Socket Error -> ".$@;
+    }
+    $socket->close()
 }
+
+
 sub printHelp {while(<DATA>){print $_}return;}
 __END__
 --------------------------------------------------------------------------------------------------------------

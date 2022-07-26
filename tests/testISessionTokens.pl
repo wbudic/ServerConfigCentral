@@ -19,15 +19,19 @@ try{
        $manager->subcase("enc -> [$enc]");
        my $ dec = $central -> decrypt($enc);       
        $manager->subcase("dec -> [$dec]");
+       $manager->subcase(qq(sessionKey -> [$central->{'session_key'}]));
        
-    die &failed if not $text eq $dec;
+    die $manager->failed() if not $text eq $dec;
     #  
-
-    # Test session token.
-    die &failed if not my $t =checkGenerateSessionToken();   
     $manager-> nextCase();
+    # Test session token.
+    die $manager->failed() if not my $t =checkGenerateSessionToken();   
+    $manager-> nextCase();
+    #
+    # Test session token to array
+    #
     my @token = CNFCentral::sessionTokenToArray($t);
-    die &failed if @token !=2;
+    die $manager->failed() if @token !=2;
     $manager->case("Token array contents -> [". join (', ', @token) . "]");
     $manager-> nextCase();
     die &failed if !checkGenerateSessionToken("ABCssssssssssssssssssssssss28");  

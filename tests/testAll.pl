@@ -11,8 +11,9 @@ require TestManager;
 #  Not in the test directory.
 #  i.e.: perl ./tests/testAll.pl
 ###
-
+print '-'x100, "\n";
 my $manager = TestManager->new();
+print '-'x100, "\n";
 try{
     opendir my($dh), './tests' or die "Couldn't open dir: $!";
     my @files = grep { !/^\./ && /\.pl$/ && -f "./tests/$_" } readdir($dh);
@@ -25,11 +26,14 @@ try{
         }
     }
     closedir $dh;
+    
+    print '-'x100, "\n";
     if($tests){
-        print BOLD "All tests ($tests) have ", BRIGHT_GREEN ,"PASSED",RESET," for test run:", RESET WHITE, " $0\n", RESET;
+        print BOLD "All ($tests) test files have ", BRIGHT_GREEN ,"PASSED",RESET," for test run:", RESET WHITE, " $0\n", RESET;
     }else{
         print BOLD BRIGHT_RED, "No tests have been run or found!", RESET WHITE, " $0\n", RESET;
     }
+    print '-'x100, "\n";
 }
 catch{ 
    $manager -> dumpTermination($@)

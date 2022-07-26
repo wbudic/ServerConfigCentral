@@ -16,27 +16,50 @@ my $server  = $central   -> {'socket'};
 # my $server = IO::Socket->new(%$cnf)  or die "Cannot open socket - $IO::Socket::errstr\n";
 $central->loadConfigs();
 while(1) {
+    COMM: print " Server is listenning...\n";
     if(my $client = $server->accept()) {
 
-        my $client_address = $client->peerhost();
-        my $client_port = $client->peerport();
-
+        my ($cmd,$rl,$client_address,$client_port);
+        $client_address = $client->peerhost();
+        $client_port = $client->peerport();
+        my $host_hdr = `hostname`. scalar localtime; 
+        $host_hdr =~ s/\n/:/g;
+        $client->send("<<header<$host_hdr>>>\n");
+        
+        
         print "Connection from: $client_address ($client_port)\n";
+             
+            my $read = $cmd= "";            
+            # while(sysread $client, $read, 1024){ print '.';
+            #     $cmd .= $read;            
+            # }
+            $client->recv($cmd,1024);
+            print "Received cmd: $cmd\n" if $cmd;
+            if(    $cmd =~ /^list/ )    {list($client,$cmd)}
+            elsif( $cmd =~ /^auth/ )    {auth($client,$cmd)}
+            elsif( $cmd =~ /^prp/ )     {property($client, $cmd)} 
+            elsif( $cmd =~ /^end/)      {$client->close(); 
+                                         print "Connection ended: $client_address($client_port)\n";
+                                         goto COMM
+            }elsif($cmd){
+                $client->send("<<error<$cmd>Command not known to server!>>");
+            }
 
-        my $cmd = " "; my $rl = sysread $client, $cmd, 1024;        
-        $client->send(`hostname`. scalar localtime . "\n");    
-        print "Received cmd: $cmd\n";
-        if( $cmd =~ /^list/ ){
-             list($client,$cmd);
-        }elsif
-          ( $cmd =~ /^prp/ ){
-             property($client, $cmd)
-          }                        
-        $client->shutdown($$server->{'CLIENT_SHUTDOWN'});
-        print "Connection closed: $client_address($client_port)\n";
+        
+        print "Socket closed: $client_address($client_port)\n";
     }
 }
+
 $server->close();
+
+sub auth {
+    my ($client, $cmd)= @_;
+    my $client_id = $client->peerport();
+    my $token = CNFCentral::generateSessionToken();
+    $central->{$client_id} = CNFCentral::sessionTokenToArray($token);
+    $client->send($token);    
+    print "Send token: $token\n";
+}
 
 sub property {
     my ($client, $cmd)= @_;

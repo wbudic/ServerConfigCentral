@@ -10,13 +10,17 @@
         Listen = 3
         ReusePort = 1
         public_dir = ./configs
+        $DEBUG=1
 >>>
 
 
 
+# The SERVER_ID, must match both in client and server script of this config file.
+# If disabled it is an public socket communication, not recommended.
+<<SERVER_ID<H336NL2-NMW-D0F-WKM>>>
+
 # Location of config files is either in the servers root or under the public_dir specified under CONST.
 <<@<@config_files<
-
 sample1.cnf
 sample2.cnf
 >>>
