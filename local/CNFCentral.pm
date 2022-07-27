@@ -99,12 +99,13 @@ sub configDumpENV {
 ###
 # Method is similar to sub sessionTokenToArray but less stict in tag format.
 # It extracts <<NAME<INSTRUCTION>VALUE>> but also <<NAME<VALUE>>> name and value pair.
+# The value could be also any text or script between tags found.
 # On return query by array size. As both are valid CNF tags.
 ###
 sub tagCNFToArray { 
     my ($self, $tag) = @_;
     die "Invalid no. of parameteres passed." unless @_ == 2;    
-    my @r = ($tag =~ m/<<(.*)<(.+?)>+(.*)>+/);
+    my @r = ($tag =~ m/<<(.*?)<(.*?)>(\s*.*?|[\*\.]*)(\s>>+|>>)/gs);
     pop @r if not $3;
     return @r;
 }
@@ -136,7 +137,7 @@ sub sessionTokenToArray {
 }
 
 sub checkIPrange {
-    my ($sip, $srange) = @_;
+    my ($self,$sip, $srange) = @_;
     my @ip = ($sip=~m/(\d*|\*)\.(\d*|\*)\.(\d*|\*)\.(\d*|\*)/);
     my @range = ($srange=~m/(\d*|\*)\.(\d*|\*)\.(\d*|\*)\.(\*|\d*)/);
     if(@ip==@range){        
@@ -153,13 +154,13 @@ sub checkIPrange {
     return 0;
 }
 
-sub loadConfigs {my ($self,@col) = @_;   
+sub loadConfigs {
+    my ($self,@col) = @_;   
     my %configs;
     my $cnf = $self->{'parser'};    
     my $c = $cnf->collection('@config_files');
     if($c){
-        @col = @$c;    
-        $self->{'%config_files'}=%configs;
+        @col = @$c;            
         foreach  my $file(@col){
             my $path = "$cnf->{public_dir}/$file";
             #print "[$path]\n"; 
@@ -173,6 +174,7 @@ sub loadConfigs {my ($self,@col) = @_;
                     print "WARNING! Config not found: $path\n";
             }
         }
+        $self->{'%config_files'}=\%configs;
     }else{
         my $CNF_PATH = %$cnf{'CNF_CONTENT'};
         die qq(ERROR! Property '\@config_files' has not been found in central config: ./$CNF_PATH\n)

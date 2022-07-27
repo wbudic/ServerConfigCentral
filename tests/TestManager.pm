@@ -44,6 +44,9 @@ sub nextCase {
 ###
 sub dumpTermination {
     my ($failed, $comment, $past, $cterminated) = @_;
+    if(ref($comment) =~ /Exception$/){
+        $comment = $comment->{'message'};
+    }
     my ($file,$lnErr) = ($comment =~ m/.*\s*at\s*(.*)\sline\s*(\d*)\.$/); 
     
     # if(!$file){

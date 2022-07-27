@@ -8,7 +8,7 @@ package CNFParser;
 use strict;use warnings;#use warnings::unused;
 use Exception::Class ('CNFParserException');
 use Syntax::Keyword::Try;
-use Hash::Util qw(lock_hash);
+use Hash::Util qw(lock_hash unlock_hash);
 
 sub import {     
     my $caller = caller;
@@ -49,7 +49,10 @@ sub new { my ($class, $path, $attrs, $del_keys, $self) = @_;
     bless $self, $class; $self->parse($path, undef, $del_keys) if($path);
     return $self;
 }
-
+###
+# Anon properties are public and global. 
+# Global means it is also static access, i.e. CNFParser::anon(NAME)
+##
 sub anon {  my ($self, $n, @arg)=@_;
     if($n){
         my $ret = $anons{$n};
@@ -159,14 +162,18 @@ package InstructedDataItem {
         }, $class;  return $class;      
     }
 }
+#
 
+###
+# Parses a CNF file or a text content if specified, for this configuration object.
+##
 sub parse { my ($self, $cnf, $content, $del_keys) = @_;
 try{
     my @tags;
     my $DO_enabled = $self->{'DO_enabled'};
     my %instructs; 
-    my $CNF_VER;
-    if(!$content){
+    
+    if(not $content){#open $cnf
         open(my $fh, "<:perlio", $cnf )  or  die "Can't open $cnf -> $!";
         read $fh, $content, -s $fh;
         close $fh;
@@ -175,12 +182,13 @@ try{
         $content = join  "",@$content;
         $self->{CNF_CONTENT} = 'ARRAY';
     }
-
     $content =~ m/^\!(CNF\d+\.\d+)/;
-    $CNF_VER = $1; $CNF_VER="Undefined!" if not $CNF_VER;
-    $self->{CNF_VERSION}=$CNF_VER;
+    my $CNF_VER = $1; $CNF_VER="Undefined!" if not $CNF_VER;
+    $self->{CNF_VERSION}=$CNF_VER if not defined $self->{CNF_VERSION};
 
-    @tags =  ($content =~ m/(<<)(<*.*?)(>>+)/gms);
+    unlock_hash(%$self);# We control from here the constances, need to unlock them if previous parse was run.
+
+    @tags =  ($content =~ m/(<<)(<*.*?>*)(>>)/gms);
     
     foreach my $tag (@tags){             
 	  next if not $tag;
@@ -209,10 +217,10 @@ try{
 
         }        
         else{
-            my ($st,$e,$t,$v, $v3, $i) = 0;                     
+            my ($st,$e,$t, $v, $v3, $i) = 0;                     
             my @vv = ($tag =~ m/(@|[\$@%]*\w*)(<|>)/g);
             $e = $vv[$i++]; $e =~ s/^\s*//g;            
-            die "Encountered invalid tag formation -> $tag" if(!$e);
+            die "Encountered invalid tag formation -> $tag" if(!$e);            
             if($e eq '$$' && $tag =~ m/(\w*)\$*<((\s*.*\s*)*)/){ #we have an autonumbered instructed list.
                $e = $1;
                $t = $2;
@@ -234,17 +242,18 @@ try{
                     $v=$tag
                    }
                }
-               my $a = $lists{$e};
-               if(!$a){$a=();$lists{$e} = \@{$a};}
-               push @{$a}, new InstructedDataItem($t,$v);
+               my $ar = $lists{$e};
+               if(!$ar){$ar=();$lists{$e} = \@{$ar};}               
+               push @{$ar}, CNFParser::InstructedDataItem->new($t,$v);
                next;
             }
-            # Is it <name><tag>value? Notce here, we are using here perls feature to return undef on unset array elements,
+            # Is it <name><tag>value? Notice here, we are using here perls feature to return undef on unset array elements,
             # other languages throw exception. And reg. exp. set variables. So the folowing algorithm is for these languages unusable.
             while(defined $vv[$i] && $vv[$i] eq '>'){ $i++; }            
             $i++;
             $t = $vv[$i++]; 
             $v = $vv[$i++];
+            
             if(!$v&&!$t&& $tag =~ m/(.*)(<)(.*)/g){# Maybe it is the old format wee <<{name}<{instruction} {value}...
                 $t = $1; if (defined $3){$v3 = $3}else{$v3 = ""} $v = $v3;            
                 my $w = ($v=~/(^\w+)/)[0];
@@ -266,9 +275,10 @@ try{
                my $l = length($e);
                   $i = index $tag, "\n";
                   $t = substr $tag, $l + 1 , $i -$l - 1;
-                  $v3 = '_SUBS1_SET';
+                  $v3 = '_SUBS1_SET'; 
+                
             }else{                  
-                  $i = length($e) + length($t) + ($i - 3);
+                  $i = length($e) + length($t) + ($i - 3);                  
                   $v3 = '_SUBS2_SET';
             }
 
@@ -276,7 +286,9 @@ try{
             $t =~ s/^\s+//g;
             # Here it gets tricky as rest of markup in the whole $tag could contain '<' or '>' as text characters, usually in multi lines.
             $v = substr $tag, $i if $v3 ne '_V3_SET';
-            $v =~ s/^[><\s]*//g if $v3 ne '_SUBS1_SET';
+            #if tag is closing properly  an instruction, further an opening one will be stripped '<'. We don't want that.
+            # was -> $v =~ s/^[<>\s]*//g if $v3 ne '_SUBS1_SET';
+            $v =~ s/^[<|>\s*]// if $v3 ne '_SUBS1_SET';
 
            # print "<<$e>>\nt:<<$t>>\nv:<<$v>>\n\n";
 
@@ -286,13 +298,13 @@ try{
                 my @props = map {
                         s/^\s+|\s+$//;   # strip unwanted spaces
                         s/^\s*["']|['"]$//g;#strip qoutes
-                        s/\s>>//;
+                        s/>+//;# strip ending CNF tag
                         $_ ? $_ : undef   # return the modified string
                     } @lst;
                 if($isArray){
                     my @arr=(); $properties{$t}=\@arr;
                     foreach  (@props){                        
-                        push @arr, $_ if( length($_)>0);
+                        push @arr, $_ if($_ && length($_)>0);
                     }
                 }else{
                     my %hsh=(); $properties{$t}=\%hsh; my $macro = 0;
@@ -322,6 +334,7 @@ try{
 
             if($t eq 'CONST'){#Single constant with mulit-line value;
                $v =~ s/^\s//;
+               #print "[[$t]]=>{$v}\n";
                $self->{$e} = $v if not $self->{$e}; # Not allowed to overwrite constant.
             }elsif($t eq 'DATA'){
 
