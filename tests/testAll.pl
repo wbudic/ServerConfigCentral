@@ -5,7 +5,7 @@ use Syntax::Keyword::Try;
 use Term::ANSIColor qw(:constants);
 use lib "./tests";
 use lib "./local";
-use lib "/home/will/dev/ServerConfigCentral/tests";
+
 require TestManager;
 
 use IPC::Run qw( run timeout );
