@@ -90,6 +90,18 @@ For further info and details, please visit [PerlCNF Project](https://github.com/
 
 ---
 
+## SPEX
+
+---
+
+**S**erver **P**erl **Ex**ecuted program. 
+
+* Provides future extension mechanism, that enables future little programs to run.
+On an existing server, that deosn't not require server code to be changed.
+* It has to be limited on what can execute in an sandbox from the server and system.
+* It activates from an embedded CNF property, in any config file.
+  * The config files are usually located in a local **./configs** directory.
+
 ## Installation
 
 ---
