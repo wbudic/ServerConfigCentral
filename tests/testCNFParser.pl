@@ -51,10 +51,12 @@ try{
         $manager->subcase("Passed keep constant test for \$cnf->\$DEBUG=$cnf->{'$DEBUG'}");
     }
 
-
     print BOLD "Test cases have ", BRIGHT_GREEN ,"PASSED",RESET," for test file:", RESET WHITE, " $0\n", RESET;
+    $manager->done();
 }
 catch{ 
-   $manager -> dumpTermination($@)
+   $manager -> dumpTermination($@);   
+   $manager->doneFailed();
 }
+
 

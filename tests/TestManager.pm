@@ -18,7 +18,7 @@ sub new {
 sub failed {
     my ($self, $err) = @_; 
     $err="" if !$err;
-    return BLINK. BRIGHT_RED. " on test:".$self->{test_cnt}."$err". RESET
+    return BLINK. BRIGHT_RED. " on test: ".$self->{test_cnt}."$err". RESET
 }
 
 sub case { 
@@ -35,6 +35,15 @@ sub nextCase {
     my ($self) =@_;
     $self->{test_cnt}++;
     $self->{sub_cnt}=0
+}
+
+sub done {
+    my ($self) =@_;
+    print $self->{test_cnt}."|SUCCESS|".$self->{test_file},"\n"
+}
+sub doneFailed {
+    my ($self) =@_;
+    print $self->{test_cnt}."|FAILED|".$self->{test_file},"\n"
 }
 
 ###

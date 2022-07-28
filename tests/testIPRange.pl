@@ -29,11 +29,14 @@ try{
     # The: unless checkIPrange('172.200.1.120', '192.*.*.*') tells die if sub is returning true.
         die failed() unless !checkIPrange('172.200.1.120', '192.*.*.*');
     #
-    print BOLD "Test cases have ", BRIGHT_GREEN ,"PASSED",RESET," for test file:", RESET WHITE, " $0\n", RESET;
+    print BOLD "Test cases have ", BRIGHT_GREEN ,"PASSED",RESET," for test file:", RESET WHITE, " $0\n", RESET;  
+    $manager->done();  
 }
 catch{ 
-   $manager -> dumpTermination($@)
+   $manager -> dumpTermination($@);
+   $manager->doneFailed();
 }
+
 
 #  TESTING THE FOLLOWING IS FROM HERE  #
 

@@ -105,8 +105,9 @@ sub configDumpENV {
 sub tagCNFToArray { 
     my ($self, $tag) = @_;
     die "Invalid no. of parameteres passed." unless @_ == 2;    
-    my @r = ($tag =~ m/<<(.*?)<(.*?)>(\s*.*?|[\*\.]*)(\s>>+|>>)/gs);
-    pop @r if not $3;
+    my @r = ($tag =~ m/<<(.*?)<(.*?)>(\s*.*?|[\*\.]*)(\s>>+|>>)/gs);    
+    pop @r if $r[-1] eq '>>';
+    pop @r if $r[-1] eq '';
     return @r;
 }
 
