@@ -7,16 +7,23 @@ use IPC::Run qw( run timeout );
 
 use lib "./local";
 use lib "./tests";
-require TestManager;
+
+try{
+    require TestManager;
+}catch{
+    print RED "Failed to require -> ".WHITE."./local/TestManager.pm".RED.
+    "\nDid you start this test suit from the project directory please?\n";
+    exit 1
+}
 
 my $TEST_LOCAL_DIR = './tests';
 
 ###
-#  Notice All test are to be run from the project directory.
-#  Not in the test directory.
+#  Notice - All test are to be run from the project directory.
+#  Not in the test directory of this file.
 #  i.e.: perl ./tests/testAll.pl
-#  If using PerlLanguageServer, for debugging, make sure it has started an instance, 
-#  or doesn't have an hanging one running in some process on same port.
+#  If using the PerlLanguageServer, i.e. for debugging, make sure it has started an instance, 
+#  or doesn't have one hanging or already running in some process on the same port.
 ###
 print '-'x100, "\n";
 my $manager = TestManager->new("Test Suit [ $0 ] (".(scalar localtime).")");
