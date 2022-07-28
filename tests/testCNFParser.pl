@@ -1,5 +1,7 @@
 #!/usr/bin/env perl
-use warnings; use strict; use Syntax::Keyword::Try; use Term::ANSIColor qw(:constants);
+use warnings; use strict; 
+use Syntax::Keyword::Try; 
+use Term::ANSIColor qw(:constants);
 use lib "./tests";
 use lib "./local";
 require TestManager;

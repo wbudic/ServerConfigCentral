@@ -167,7 +167,8 @@ package InstructedDataItem {
 ###
 # Parses a CNF file or a text content if specified, for this configuration object.
 ##
-sub parse { my ($self, $cnf, $content, $del_keys) = @_;
+sub parse { 
+    my ($self, $cnf, $content, $del_keys) = @_;
 try{
     my @tags;
     my $DO_enabled = $self->{'DO_enabled'};
@@ -178,9 +179,12 @@ try{
         read $fh, $content, -s $fh;
         close $fh;
         $self->{CNF_CONTENT} = $cnf;
-    }elsif( Scalar::Util::reftype($content) eq 'ARRAY'){
-        $content = join  "",@$content;
-        $self->{CNF_CONTENT} = 'ARRAY';
+    }else{
+        my $type =Scalar::Util::reftype($content);
+        if($type && $type eq 'ARRAY'){
+            $content = join  "",@$content;
+            $self->{CNF_CONTENT} = 'ARRAY';
+        }
     }
     $content =~ m/^\!(CNF\d+\.\d+)/;
     my $CNF_VER = $1; $CNF_VER="Undefined!" if not $CNF_VER;

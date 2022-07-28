@@ -11,7 +11,7 @@ sub new {
      my ($class, $test_file, $self) = @_; 
      $test_file = $0 if not $test_file;
      $self = bless {test_file=> $test_file,test_cnt=>1}, $class;
-     print  "Running -> $test_file\n";
+     print  BLUE."Running -> ".WHITE."$test_file\n".RESET;
      return $self;
 }
 
@@ -23,12 +23,12 @@ sub failed {
 
 sub case { 
     my ($self, $out) =@_;
-print "\tCase ".$self->{test_cnt}.": $out\n"
+    print BRIGHT_CYAN,"\tCase ".$self->{test_cnt}.": $out\n".RESET
 }
 sub subcase {
     my ($self, $out) =@_;
     my $sub_cnt = ++$self->{sub_cnt};
-    print "\t   Case ".$self->{test_cnt}.".$sub_cnt: $out\n"
+    print GREEN."\t   Case ".$self->{test_cnt}.".$sub_cnt: $out\n".RESET
 }
 
 sub nextCase {
