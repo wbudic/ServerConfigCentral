@@ -99,18 +99,34 @@ sub configDumpENV {
 ###
 # Method is similar to sub sessionTokenToArray but less stict in tag format.
 # It extracts <<NAME<INSTRUCTION>VALUE>> but also <<NAME<VALUE>>> name and value pair.
-# The value could be also any text or script between tags found.
-# On return query by array size. As both are valid CNF tags.
+# The value could be also any text or script between tags found. 
+# @returns The query turned into an array as ["NAME", "VALUE"] pair. 
 ###
 sub tagCNFToArray { 
     my ($self, $tag) = @_;
     die "Invalid no. of parameteres passed." unless @_ == 2;    
-    my @r = ($tag =~ m/<<(.*?)<(.*?)>(\s*.*?|[\*\.]*)(\s>>+|>>)/gs);    
+    my  @r = ($tag =~ m/<<(.*?)<(.*?)>(\s*.*?|[\*\.]*)(\s>>+|>>)/gs);    
     pop @r if $r[-1] eq '>>';
     pop @r if $r[-1] eq '';
     return @r;
 }
-
+###
+# Static method that parses further possibly chained series of commands.
+# @return
+###
+sub parseCmdChain { 
+    if(@_>1){shift} 
+    my $cmd = shift;
+    my @rc =($cmd =~ /;/);
+    if(@rc>0){
+        my @recurse; 
+        foreach(@rc){push @recurse, parseCmdChain($_)}
+    }else{        
+        @rc = ( $cmd=~ m/(['=].*'|\w*)\s*/gs ); 
+        pop @rc if(!$rc[-1]);
+        return @rc
+    }
+}
 ###
 # Server uses following routine at connection request stage.
 ###
@@ -172,7 +188,7 @@ sub loadConfigs {
                     print "Loaded config: $path\n";
                 }
             }else{            
-                    print "WARNING! Config not found: $path\n";
+                    print "WARNING! Not found: $path\n";
             }
         }
         $self->{'%config_files'}=\%configs;
