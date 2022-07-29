@@ -6,7 +6,7 @@ use lib "./local";
 require TestManager;
 require CNFCentral;
 
-my $manager = TestManager->new($0);
+my $test = TestManager -> new($0);
 
 use Syntax::Keyword::Try; try{   
 
@@ -17,42 +17,42 @@ use Syntax::Keyword::Try; try{
     my $central =  CNFCentral-> new();
        $central->initCBC(checkGenerateSessionToken());
        my $ enc = $central -> encrypt($text);
-       $manager->subcase("enc -> [$enc]");
+       $test->subcase("enc -> [$enc]");
        my $ dec = $central -> decrypt($enc);       
-       $manager->subcase("dec -> [$dec]");
-       $manager->subcase(qq(sessionKey -> [$central->{'session_key'}]));
+       $test->subcase("dec -> [$dec]");
+       $test->subcase(qq(sessionKey -> [$central->{'session_key'}]));
        
-    die $manager->failed() if not $text eq $dec;
+    die $test->failed() if not $text eq $dec;
     #
 
     #  
-    $manager-> nextCase();
+    $test-> nextCase();
     #
 
     # Test session token.
-    die $manager->failed() if not my $t =checkGenerateSessionToken();
+    die $test->failed() if not my $t =checkGenerateSessionToken();
 
     #
-    $manager-> nextCase();
+    $test-> nextCase();
     #
-    
+
     #
     # Test session token to array
     #
     my @token = CNFCentral::sessionTokenToArray($t);
-    die $manager->failed() if @token !=2;
-    $manager->case("Token array contents -> [". join (', ', @token) . "]");
-    $manager-> nextCase();
+    die $test->failed() if @token !=2;
+    $test->case("Token array contents -> [". join (', ', @token) . "]");
+    $test-> nextCase();
     die &failed if !checkGenerateSessionToken("ABCssssssssssssssssssssssss28");  
     #
     
     #
-    $manager->done();
+    $test->done();
     #
 }
 catch{ 
-   $manager -> dumpTermination($@);
-   $manager->doneFailed();
+   $test -> dumpTermination($@);
+   $test->doneFailed();
 }
 
 
@@ -64,7 +64,7 @@ catch{
 ###
 sub checkGenerateSessionToken {  my $pass = shift;        
     my $t =  CNFCentral::generateSessionToken($pass);    
-    $manager->case($t);
+    $test->case($t);
     die if length($t)<27;
     return $t;
 }

@@ -6,67 +6,67 @@ use lib "./local";
 require TestManager;
 require CNFCentral;
 
-my $manager = TestManager->new($0);
+my $test = TestManager -> new($0);
 
 use Syntax::Keyword::Try; try{
     ###
     # Test instance creation.
     #
-    die $manager->failed()if not my $central = CNFCentral->new();
-    $manager->case("Passed new instance CNFCentral.");
+    die $test->failed() if not my $central = CNFCentral->new();
+    $test->case("Passed new instance CNFCentral.");
     #  
-    $manager-> nextCase();
+    $test-> nextCase();
     #
 
     # Test session token.
-    die $manager->failed()if not my $token = CNFCentral::generateSessionToken();   
+    die $test->failed()if not my $token = CNFCentral::generateSessionToken();   
     #
-    $manager->case("Passed CNFCentral::generateSessionToken().");
-    $manager-> nextCase();    
+    $test->case("Passed CNFCentral::generateSessionToken().");
+    $test-> nextCase();    
     #
 
     ###
     # Test tagCNFToArray from session token.    
     ###
     my @prop = $central->tagCNFToArray($token);
-    die $manager->failed()if @prop != 3;
+    die $test->failed()if @prop != 3;
     @prop = $central->tagCNFToArray('<<name<value>>>');
-    $manager->case(join '|', @prop);
-    die $manager->failed()if @prop != 2;
-    $manager->subcase("It equals to nb of elements.");
-    die $manager->failed()if $prop[0] ne 'name' or $prop[1] ne 'value';
-    $manager->subcase("And they equal 'name' and 'value'");
+    $test->case(join '|', @prop);
+    die $test->failed()if @prop != 2;
+    $test->subcase("It equals to nb of elements.");
+    die $test->failed()if $prop[0] ne 'name' or $prop[1] ne 'value';
+    $test->subcase("And they equal 'name' and 'value'");
     
     #
-    $manager-> nextCase();     
+    $test-> nextCase();     
     #
 
     ###
     # Test static utility.
     #
     @prop = $central->sessionTokenToArray($token);
-    $manager->case(join '|', @prop);
-    die $manager->failed() if @prop != 2;
+    $test->case(join '|', @prop);
+    die $test->failed() if @prop != 2;
     #
-    $manager-> nextCase(); 
+    $test-> nextCase(); 
     #
 
     ###
     # Test parse chain of server issued commands.
     #
-    die $manager->failed()if not my @chain = $central->parseCmdChain("auth anon kurac='palac '");
-    die $manager->failed()if not @chain == 4;
-        $manager->case(join '|', @chain);    
-    die $manager->failed()if not $chain[-1] eq "='palac '";
+    die $test->failed()if not my @chain = $central->parseCmdChain("auth anon kurac='palac '");
+    die $test->failed()if not @chain == 4;
+        $test->case(join '|', @chain);    
+    die $test->failed()if not $chain[-1] eq "='palac '";
     #
 
     #   
-    $manager->done();    
+    $test->done();    
     #
 }
 catch{ 
-   $manager -> dumpTermination($@);   
-   $manager->doneFailed();
+   $test -> dumpTermination($@);   
+   $test -> doneFailed();
 }
 
 #
@@ -77,7 +77,7 @@ catch{
 ###
 sub checkGenerateSessionToken {  my $pass = shift;        
     my $t =  CNFCentral::generateSessionToken($pass);    
-    $manager->case($t);
+    $test->case($t);
     die if length($t)<27;
     return $t;
 }

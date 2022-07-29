@@ -5,17 +5,17 @@ use lib "./local";
 
 require TestManager;
 
-my $manager = TestManager->new($0);
+my $test = TestManager->new($0);
 use Syntax::Keyword::Try; try{ 
     #
     # Test common encounters.
-    die &failed if checkIPrange('192.168.0.1', '192.168.*.')==1;  $manager-> nextCase();
-    die &failed if checkIPrange('192.168.0.1', '192.168.*.*')==0; $manager-> nextCase();
-    die &failed if checkIPrange('192.168.0.1', '192.167.*.');  $manager-> nextCase();
-    die &failed if checkIPrange('192.168.0.1', '192.167.*.*');  $manager-> nextCase();
-    die &failed if !checkIPrange('192.168.0.1', '192.168.*.*');  $manager-> nextCase();
+    die &failed if checkIPrange('192.168.0.1', '192.168.*.')==1;  $test-> nextCase();
+    die &failed if checkIPrange('192.168.0.1', '192.168.*.*')==0; $test-> nextCase();
+    die &failed if checkIPrange('192.168.0.1', '192.167.*.');  $test-> nextCase();
+    die &failed if checkIPrange('192.168.0.1', '192.167.*.*');  $test-> nextCase();
+    die &failed if !checkIPrange('192.168.0.1', '192.168.*.*');  $test-> nextCase();
     # It will die if it reports not in range. Here it returns true or 1.
-    die &failed if !checkIPrange('192.168.0.1', '*.*.*.*'); $manager-> nextCase();
+    die &failed if !checkIPrange('192.168.0.1', '*.*.*.*'); $test-> nextCase();
     # $bool as 1 is true anything other is false: following $bool should be true, as the ranging matches.
         my  $bool   = checkIPrange('192.168.1.20', '192.168.*.20'); 
         if(!$bool){die &failed}
@@ -23,16 +23,16 @@ use Syntax::Keyword::Try; try{
     #
 
     #
-       $manager-> nextCase();
+       $test -> nextCase();
     #
     # Range doesn't match should retun false or 0.                     
         die failed() if 1==checkIPrange('192.168.1.20', '192.*.*.21');
     #
 
     #
-    $manager-> nextCase();
+    $test -> nextCase();
     #
-    
+
     #
     # Following should return false or 0 ip first range do not match.
     # The: unless checkIPrange('172.200.1.120', '192.*.*.*') tells die if sub is returning true.
@@ -40,12 +40,12 @@ use Syntax::Keyword::Try; try{
     #
 
     #
-    $manager->done();  
+    $test -> done();  
     #
 }
 catch{ 
-   $manager -> dumpTermination($@);
-   $manager->doneFailed();
+   $test -> dumpTermination($@);
+   $test->doneFailed();
 }
 
 
