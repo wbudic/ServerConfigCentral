@@ -1,13 +1,14 @@
 #!/usr/bin/env perl
-use warnings; use strict; use Syntax::Keyword::Try; use Term::ANSIColor qw(:constants);
+use warnings; use strict; 
 use lib "./tests";
 use lib "./local";
+
 require TestManager;
 require CNFCentral;
 
 my $manager = TestManager->new($0);
 
-try{
+use Syntax::Keyword::Try; try{
     ###
     # Test instance creation.
     #
@@ -23,6 +24,7 @@ try{
     $manager->case("Passed CNFCentral::generateSessionToken().");
     $manager-> nextCase();    
     #
+
     ###
     # Test tagCNFToArray from session token.    
     ###
@@ -31,21 +33,36 @@ try{
     @prop = $central->tagCNFToArray('<<name<value>>>');
     $manager->case(join '|', @prop);
     die $manager->failed()if @prop != 2;
-    $manager->subcase("It equals to elements.");
+    $manager->subcase("It equals to nb of elements.");
     die $manager->failed()if $prop[0] ne 'name' or $prop[1] ne 'value';
-    $manager->subcase("And they equal 'name' and 'value'");    
-    $manager-> nextCase(); 
+    $manager->subcase("And they equal 'name' and 'value'");
+    
+    #
+    $manager-> nextCase();     
     #
 
-    ##
-    #Test static utility.
+    ###
+    # Test static utility.
     #
     @prop = $central->sessionTokenToArray($token);
     $manager->case(join '|', @prop);
     die $manager->failed() if @prop != 2;
     #
-    print BOLD "Test cases have ", BRIGHT_GREEN ,"PASSED",RESET," for test file:", RESET WHITE, " $0\n", RESET;   
+    $manager-> nextCase(); 
+    #
+
+    ###
+    # Test parse chain of server issued commands.
+    #
+    die $manager->failed()if not my @chain = $central->parseCmdChain("auth anon kurac='palac '");
+    die $manager->failed()if not @chain == 4;
+        $manager->case(join '|', @chain);    
+    die $manager->failed()if not $chain[-1] eq "='palac '";
+    #
+
+    #   
     $manager->done();    
+    #
 }
 catch{ 
    $manager -> dumpTermination($@);   

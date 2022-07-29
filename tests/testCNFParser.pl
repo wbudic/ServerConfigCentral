@@ -1,24 +1,26 @@
 #!/usr/bin/env perl
 use warnings; use strict; 
-use Syntax::Keyword::Try; 
-use Term::ANSIColor qw(:constants);
 use lib "./tests";
 use lib "./local";
+
 require TestManager;
 require CNFParser;
 
 my $manager = TestManager->new($0);
 
-try{ 
+use Syntax::Keyword::Try; try {
 
     ###
     # Test instance creation.
     ###
     die $manager->failed()  if not my $cnf = CNFParser->new();
     $manager->case("Passed new instance for CNFParser.");
+    #
+
     #  
     $manager-> nextCase();
-    
+    #
+
     ###
     # Test parsing HTML tags in value.
     ###
@@ -26,7 +28,11 @@ try{
     die $manager->failed()  if not $cnf->{tag1}  eq '<HTML></HTML>';
     $manager->case($cnf->{tag1});
     #
+
+    #
     $manager-> nextCase();
+    #
+
     ###
     # Parser will ignore if a previous constance tag1 is tried to be parsed again, this is an feature.
     # So let's do tag2.
@@ -38,7 +44,11 @@ try{
     $manager->case($tag2);
     die $manager->failed()  if not $tag2  eq '<HTML>something</HTML>';
     #
+
+    #
     $manager-> nextCase();
+    #
+
     ###
     # Test central.cnf
     #
@@ -53,8 +63,9 @@ try{
         $manager->subcase("Passed keep constant test for \$cnf->\$DEBUG=$cnf->{'$DEBUG'}");
     }
 
-    print BOLD "Test cases have ", BRIGHT_GREEN ,"PASSED",RESET," for test file:", RESET WHITE, " $0\n", RESET;
+    #
     $manager->done();
+    #
 }
 catch{ 
    $manager -> dumpTermination($@);   

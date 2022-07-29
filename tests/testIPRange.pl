@@ -1,11 +1,12 @@
 #!/usr/bin/env perl
-use warnings; use strict; use Syntax::Keyword::Try; use Term::ANSIColor qw(:constants);
+use warnings; use strict; 
 use lib "./tests";
 use lib "./local";
+
 require TestManager;
 
 my $manager = TestManager->new($0);
-try{
+use Syntax::Keyword::Try; try{ 
     #
     # Test common encounters.
     die &failed if checkIPrange('192.168.0.1', '192.168.*.')==1;  $manager-> nextCase();
@@ -19,18 +20,28 @@ try{
         my  $bool   = checkIPrange('192.168.1.20', '192.168.*.20'); 
         if(!$bool){die &failed}
         die &failed unless $bool || $bool == 0;
+    #
+
+    #
        $manager-> nextCase();
     #
     # Range doesn't match should retun false or 0.                     
-        die failed() if 1==checkIPrange('192.168.1.20', '192.*.*.21');     
+        die failed() if 1==checkIPrange('192.168.1.20', '192.*.*.21');
+    #
+
+    #
     $manager-> nextCase();
+    #
+    
     #
     # Following should return false or 0 ip first range do not match.
     # The: unless checkIPrange('172.200.1.120', '192.*.*.*') tells die if sub is returning true.
         die failed() unless !checkIPrange('172.200.1.120', '192.*.*.*');
     #
-    print BOLD "Test cases have ", BRIGHT_GREEN ,"PASSED",RESET," for test file:", RESET WHITE, " $0\n", RESET;  
+
+    #
     $manager->done();  
+    #
 }
 catch{ 
    $manager -> dumpTermination($@);

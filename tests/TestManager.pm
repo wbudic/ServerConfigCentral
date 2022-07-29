@@ -39,7 +39,8 @@ sub nextCase {
 
 sub done {
     my ($self) =@_;
-    print $self->{test_cnt}."|SUCCESS|".$self->{test_file},"\n"
+    print BOLD "Test cases ($self->{test_cnt}) have ", BRIGHT_GREEN ,"PASSED",RESET," for test file:", RESET WHITE, " .$self->{test_file}\n", RESET;
+    print $self->{test_cnt}."|SUCCESS|".$self->{test_file},"\n"    
 }
 sub doneFailed {
     my ($self) =@_;

@@ -1,13 +1,14 @@
 #!/usr/bin/env perl
-use warnings; use strict; use Syntax::Keyword::Try; use Term::ANSIColor qw(:constants);
+use warnings; use strict;
 use lib "./tests";
 use lib "./local";
+
 require TestManager;
 require CNFCentral;
 
 my $manager = TestManager->new($0);
 
-try{   
+use Syntax::Keyword::Try; try{   
 
     ###
     # Test encryption.
@@ -22,11 +23,19 @@ try{
        $manager->subcase(qq(sessionKey -> [$central->{'session_key'}]));
        
     die $manager->failed() if not $text eq $dec;
+    #
+
     #  
     $manager-> nextCase();
+    #
+
     # Test session token.
-    die $manager->failed() if not my $t =checkGenerateSessionToken();   
+    die $manager->failed() if not my $t =checkGenerateSessionToken();
+
+    #
     $manager-> nextCase();
+    #
+    
     #
     # Test session token to array
     #
@@ -36,8 +45,10 @@ try{
     $manager-> nextCase();
     die &failed if !checkGenerateSessionToken("ABCssssssssssssssssssssssss28");  
     #
-    print BOLD "Test cases have ", BRIGHT_GREEN ,"PASSED",RESET," for test file:", RESET WHITE, " $0\n", RESET; 
-    $manager->done();   
+    
+    #
+    $manager->done();
+    #
 }
 catch{ 
    $manager -> dumpTermination($@);

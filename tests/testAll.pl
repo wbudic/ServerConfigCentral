@@ -72,7 +72,7 @@ try{
         WHITE, "Finished with test Suit ->$0\n", RESET;
 
     }elsif($test_pass){
-        print BOLD BLUE "All test files ($test_pass), having $test_cases cases, have ", BRIGHT_GREEN ,"PASSED!", RESET, WHITE,
+        print BOLD BLUE "Test files ($test_pass of them), having $test_cases cases, ALL HAVE ", BRIGHT_GREEN ,"SUCCESSFULLY PASSED!", RESET, WHITE,
                     " (".(scalar localtime).")".BOLD.BLUE."\nFor Test Suit:", RESET WHITE, " $0\n", RESET
                    
     }else{
