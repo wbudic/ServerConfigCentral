@@ -118,7 +118,7 @@ sub tagCNFToArray {
 # @return array reference
 ###
 sub parseCmdChain { 
-    if(@_>1){shift} 
+    shift if(@_>1);
     my $cmd = shift;
     my @rc =($cmd =~ /;/);
     if(@rc>0){
@@ -127,7 +127,7 @@ sub parseCmdChain {
         return \@recurse;
     }else{        
         @rc = ( $cmd=~ m/(['=].*'|\w*)\s*/gs ); 
-        pop @rc if(!$rc[-1]);
+        while(@rc &&!$rc[-1]){pop @rc}
         return \@rc
     }
 }
