@@ -25,3 +25,11 @@ sample1.cnf
 sample2.cnf
 >>>
 
+# Files on demand are not kept in memory, and are loaded and discarded once served.
+# Any accessible full path can be specified here.
+<<@<@config_files_on_demand>
+/usr/share/local/CNF/example_data.cnf
+>>
+
+
+
