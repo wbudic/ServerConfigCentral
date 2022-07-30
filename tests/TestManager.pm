@@ -18,7 +18,7 @@ sub new {
 sub failed {
     my ($self, $err) = @_; 
     $err="" if !$err;
-    return BLINK. BRIGHT_RED. " on test: ".$self->{test_cnt}."$err". RESET
+    return BLINK. BRIGHT_RED. " on test: ".$self->{test_cnt}." -> $err". RESET
 }
 
 sub case { 

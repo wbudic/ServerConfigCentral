@@ -2,6 +2,7 @@
 
 use warnings; use strict; use Syntax::Keyword::Try;
 use lib "./local";
+
 require CNFCentral;
 
 
@@ -10,7 +11,7 @@ my $socket  = $central   -> {'socket'};
 my ($cmd,$strip);
 $socket->recv($cmd, 64);
 print "Connected: $cmd" if $central->config()->{'$DEBUG'}; 
-$cmd="" ;
+$cmd="";
 
 foreach my $a (@ARGV){
     my $v = $a; $v =~ s/^-+.*[=:]//;    
@@ -41,9 +42,23 @@ if ($socket){
 
 sub issueCommand { my ($cmd) = @_;
     print "IssueCommand -> $cmd\n" if $central->config()->{'$DEBUG'};
+    my ($read, $token, $buffer) ="";
     try{ 
-        $socket->send($cmd);
-        my $read; my $buffer="";        
+
+        if($cmd =~ m/^auth/){
+            
+            my $c = 'auth';
+            $socket->send($c."\0");
+            $socket->recv($buffer, 1024);
+            $token = $central->sessionTokenToArray($buffer);
+            print ("Received token: $buffer");
+            $c = substr $cmd,5;
+            $socket->send($c."\0");    
+            $buffer="";        
+        }else{
+            $socket->send($cmd);
+        }
+                
         while(sysread $socket, $read, 1024){ $buffer .= $read}
         if($strip){
             #m/<<(.*?)<(.*?)>(\s*.*|[\*\.]*)>>>/gs          

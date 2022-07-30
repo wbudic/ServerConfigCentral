@@ -50,8 +50,8 @@ sub new { my ($class, $path, $attrs, $del_keys, $self) = @_;
     return $self;
 }
 ###
-# Anon properties are public and global. 
-# Global means it is also static access, i.e. CNFParser::anon(NAME)
+# Anon properties are public and global. Constances are protected and instance specific.
+# Global means it is also static, i.e. CNFParser::anon(NAME)
 ##
 sub anon {  my ($self, $n, @arg)=@_;
     if($n){
@@ -66,7 +66,7 @@ sub anon {  my ($self, $n, @arg)=@_;
         }
         return $ret;
     }
-    return $anons{$self};
+    return \%anons;
 }
 #@DEPRECATED attributes are all the constants, externally can be read only.
 sub constant  {my ($self,$c)=@_; return $self->{$c} unless $CONSTREQ; 

@@ -9,11 +9,14 @@ use warnings; use strict;
 use IO::Socket qw(AF_INET AF_UNIX SOCK_STREAM SHUT_WR inet_aton);
 use Crypt::CBC;
 use Crypt::Blowfish;
+
 require CNFParser;  
+
 use constant VERSION => '1.0';
 use constant CONFIG  => 'central.cnf';
 
 our $CBC_IV = "C00000000000000F";
+
 
 sub server {    my ($class, $config, %self) = @_; 
     $config = defaultConfigFile($class, CONFIG) if ! $config;
@@ -112,21 +115,55 @@ sub tagCNFToArray {
 }
 ###
 # Static method that parses further possibly chained series of commands.
-# @return
+# @return array reference
 ###
 sub parseCmdChain { 
     if(@_>1){shift} 
     my $cmd = shift;
     my @rc =($cmd =~ /;/);
     if(@rc>0){
-        my @recurse; 
+         my @recurse; 
         foreach(@rc){push @recurse, parseCmdChain($_)}
+        return \@recurse;
     }else{        
         @rc = ( $cmd=~ m/(['=].*'|\w*)\s*/gs ); 
         pop @rc if(!$rc[-1]);
-        return @rc
+        return \@rc
     }
 }
+
+sub _processChainedCmd {    
+    my ($client, $rep, $_anon_sub, @args)= @_; 
+    my ($name, $value,$result);
+    # It is complicated, the full format is:
+    # "{repo} name {'=value'}" <-[...]
+    # where default repo is {global} and if value not specified 
+    # the anon existing value is required. If it exists and is valid.
+    foreach my $next(@args){
+            if(ref($next) eq 'ARRAY'){
+                processChainedCmd($client, $rep, @$next);
+            }elsif(!$name){
+                $name = $next;
+            }elsif(!$value){
+                $value = $next;
+            }
+            
+            if($value){
+                if($value =~/^=/){
+                   $result .= &$_anon_sub($client, $rep, $name, $value);
+                   $name = $value = ""
+                }else{
+                   $rep  = $name;
+                   $name = $value; 
+                   $value = ""
+                }
+            }
+    }
+    $result .= &$_anon_sub($client, $rep, $name, $value) if $name;
+    return $result;
+}
+
+
 ###
 # Server uses following routine at connection request stage.
 ###
@@ -171,11 +208,37 @@ sub checkIPrange {
     return 0;
 }
 
+#
+
+###
+# Obtains config from repository.
+# Global public if not specified which.
+# returns scalar ref for config or undef if not found/present!
+###
+sub getRepo {     
+     my ($self,$alias) = @_;
+     $alias = 'global' if ! defined $alias;
+    my $path = %$self{'parser'}->{'public_dir'}."/$alias.cnf";    
+    return $self->{'CNF_GLOBAL'} if($alias eq 'global') && $self->{'CNF_GLOBAL'};
+
+    if(-e $path){
+      my $cnf = \CNFParser->new(undef,$path,undef,{});
+      print "Loaded repo config: $path\n";      
+      return $cnf;
+    }elsif($alias eq 'global'){ 
+        my $cnf = CNFParser->new(undef,{CNF_CONTENT=>$path});
+        $cnf->anon()->{'repo_generated'} = 1;
+        $self->{'CNF_GLOBAL'} = $cnf;        
+        return $cnf;
+    }
+    return undef;
+}
+
 sub loadConfigs {
     my ($self,@col) = @_;   
     my %configs;
     my $cnf = $self->{'parser'};    
-    my $c = $cnf->collection('@config_files');
+    my $c   = $cnf->collection('@config_files');
     if($c){
         @col = @$c;            
         foreach  my $file(@col){
@@ -201,3 +264,4 @@ sub loadConfigs {
 
 __END__
 
+1;

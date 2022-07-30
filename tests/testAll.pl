@@ -51,13 +51,14 @@ try{
                     $WARN{$_} = $file;
                 }
             }
-            if($test_ret[1] eq 'SUCCESS'){
-                $test_pass++;                
+            if(@test_ret && $test_ret[1] eq 'SUCCESS'){
+                $test_pass++;
+                #This is actually global test cases pass before sequently hitting an fail.
+                $test_cases+= $test_ret[0];
             }else{
                 $test_fail++;
+                print BOLD RED "Failed Test File -> ", WHITE, "$file\n", RESET
             }
-            #This is actually global test cases pass before sequently hitting an fail.
-            $test_cases+=$test_ret[0];
         }
     }
     foreach(@OUT){        
@@ -72,16 +73,16 @@ try{
         WHITE, "Finished with test Suit ->$0\n", RESET;
 
     }elsif($test_pass){
-        print BOLD BLUE "Test files ($test_pass of them), having $test_cases cases, ALL HAVE ", BRIGHT_GREEN ,"SUCCESSFULLY PASSED!", RESET, WHITE,
+        print BOLD BLUE "Test files ($test_pass of them), having $test_cases cases. Have all ", BRIGHT_GREEN ,"SUCCESSFULLY PASSED!", RESET, WHITE,
                     " (".(scalar localtime).")".BOLD.BLUE."\nFor Test Suit:", RESET WHITE, " $0\n", RESET
                    
     }else{
         print BOLD BRIGHT_RED, "No tests have been run or found!", RESET WHITE, " $0\n", RESET;
     }
     if(%WARN){
-        print BOLD YELLOW, "Buddy, you got some Perl Issues with me:\n",BLUE;
+        print BOLD YELLOW, "Buddy, sorry to tell you. But you got the following Perl Issues:\n",BLUE;
         foreach(keys %WARN){        
-            print "In file:  $WARN{$_}".MAGENTA."\n",$_."\n";        
+            print "In file:  $WARN{$_}".MAGENTA."\n",$_."\n", BLUE;        
         }
         print RESET;
     }
