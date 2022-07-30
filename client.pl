@@ -51,7 +51,7 @@ sub issueCommand { my ($cmd) = @_;
             $socket->send($c."\0");
             $socket->recv($buffer, 1024);
             $token = $central->sessionTokenToArray($buffer);
-            print ("Received token: $buffer");
+            print ("Received token: $buffer\n");
             $c = substr $cmd,5;
             $socket->send($c."\0");    
             $buffer="";        

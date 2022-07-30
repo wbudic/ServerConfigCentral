@@ -99,23 +99,24 @@ sub auth {
     print "Token send: $token\n";
     $client->recv($cmd, 1024);
     print "Client req: $cmd\n";
-    if(length($cmd>4)){        
-        if(    $cmd =~ /^auth\s*anon/ )    {anon($client,$cmd)}
-        elsif( $cmd =~ /^auth\s*load/ )    {load($client,$cmd)}
-        elsif( $cmd =~ /^auth\s*save/ )    {save($client,$cmd)}
+    if(length($cmd)>4){        
+        if(    $cmd =~ /^anon/ )    {anon($client,$cmd)}
+        elsif( $cmd =~ /^load/ )    {load($client,$cmd)}
+        elsif( $cmd =~ /^save/ )    {save($client,$cmd)}
     }
     return $token;
 }
 
 sub anon {
     my ($client, $cmd)= @_;     
-    my @args = $central -> parseCmdChain('global',$cmd);
-    my $name = shift @args;# <- should always will be 'auth' up to this point.
-       $name = shift @args;# <- should always will be 'anon'.
+    my $args = $central -> parseCmdChain($cmd);
+    my $func = shift @$args;# <- should always will be 'anon' up to this point.       
+    $client->send("<<error<1>Service '$cmd' what?>>\n") if @$args == 0 || !$func;
+
     # Following is an powerful language feature of perl, 
     # called anonymous function pass to the class.    
-    my  $ret = CNFCentral::processChainedCmd($client, 'global', *accessRepositoryForAnon, @args);
-    $client->send("$ret\n<<error<1>Service '$cmd' not available yet. It is still Under development.>>\n");
+    my  $ret = CNFCentral::_processChainedCmd($client, 'global', *accessRepositoryForAnon, @$args);
+    $client->send("$ret\n<<error<2>Service '$cmd' not available yet. It is still Under development.>>\n");
 }
 
     sub accessRepositoryForAnon{
@@ -131,6 +132,8 @@ sub anon {
            my $anons = $repo->anon();
            $anons->{$name} = $value;
            return "<<anon<modified $rep_alias/$name>$value>>";
+        }else{
+           $value = $repo->anon($name)
         }
         return "<<anon<$rep_alias/$name>$value>>";
     }
