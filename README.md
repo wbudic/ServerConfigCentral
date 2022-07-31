@@ -37,32 +37,33 @@ stateDiagram-v2
 
 ## Protocols
 
----
-
 Protocol is inbuilt part of the system and channel. Not based on any standards.
 It doesn't require or goes through any additional network or system layers.
 
 * Protocol between Client and Server are here specified.
   
-  * Connection request and response is server sending an stamp.
-  * General plain interaction is client sends command, and server response and termination.
-  * Authentication protocol required commands.
-
----
+  * Connection request and response is for server sending an time stamp.
+  * General plain interaction is ,client sends command, and server responds, not depending on termination.
+  * Authentication protocol required commands, client has to request. As this deeper dives into more clearer communication and control.
+  * Authenticating commands is not much for security, but to follow exact and required steps.
+  * This protocol from start in specs, is to be capable to run on any network. 
+    * But attention is not at all for the internet.
 
 ### Authentication Protocol
 
----
-
-* The Server generates on first run an server signature unique hash code if not found.
+* The Server generates on first run a server signature unique hash code if not found.
   * Client receives this token during connection stage.
     * The hash is used for authentication request part.
-  * The client next ends an **auth** request to server.
-  * Server authenticates and send either error or the session token.
+  * The client next sends an **auth** request to server.
+  * Server authenticates and sends either error or an session token.
   * Both the hash code and the session tokens are further on used.
-    * To perform further socket session encryption I/O during communication.
-    * Each Server has its own port and hash, and each client has its own session.
+    * To perform further socket session encryption I/O during communication, if required.
+    * Each Server has its own port and hash, and each client has its own session, to any one server.
+    * Usual setup on a local network is one server for the whole any number of clients.
     * Datagrams of others can't read or process as their are scrambled on the network.
+    * Server can process and even store, network issued variable.
+      * This explanation for and about these, will be available at some later stage on this page.
+    * Server can also deliver various formats and parts of data, files, from third party services as an central.
 
 ```mermaid
 
@@ -79,19 +80,13 @@ sequenceDiagram
 
 ## Perl CNF
 
----
-
 * **Perl based Configuration Network File Format Parser.**
   * Provides a user friendly, property value pair processing, easy configuration and processing under special specifications.  
   * It is geared towards the Perl language semantics and its ultra fast hash organizing.
 
 For further info and details, please visit [PerlCNF Project](https://github.com/wbudic/PerlCNF/blob/master/README.md).
 
----
-
 ## SPEX
-
----
 
 **S**erver **P**erl **Ex**ecuted program.
 
@@ -103,15 +98,9 @@ On an existing server, that deosn't not require server code to be changed.
 
 ## Installation
 
----
-
-  **Info is not available yet.**
-
----
+**Info is not available yet.**
 
 ## Software Release Stages
-
----
 
 Following are mine software development release stages.
 As paradigm invented and adopted by me the author here.
@@ -145,7 +134,7 @@ I stand to be corrected, and all next mentioned is from my own experience and pr
   * As release it prepares for the next stage. All faults or new features now enter.
   * When long enough in use as such it is ready to progress to the next stage.
 
-###
+
 
 * **Sun Stage**
 
@@ -157,8 +146,6 @@ I stand to be corrected, and all next mentioned is from my own experience and pr
   * Code is boomed up, bettered and made useful and more user friendly, tested and all concepts are final.
   * On release, this stage, starts of gearing the Project towards the next stage, very complex one.
   
-###
-
 
 * **Earth Stage**
 
@@ -168,5 +155,6 @@ I stand to be corrected, and all next mentioned is from my own experience and pr
   * Will it be abused, smacked around to not only be functional, but not compatible.
   * Like the earth, this is a stage, of no return it is released to full human use.
   * To enter this stage, the project has final plans, tests, features and working usability.
-  * On release, this can only work and enhance on missed tidbits of now that it had hit the earth.
+  * On release, the project can only be further worked on, to be enhance on existing, or fix uncomprenhisble situations,
+   or missed and not foreseeing tidbits. As it had hit the general use on earth.
 
