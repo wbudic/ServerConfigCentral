@@ -15,10 +15,10 @@ The current version is  **1.0** and is in the **Moon** stage of the development 
 * Using an CNFClient to access this configuration instead of an local file, can have many benefits.
   * General and common settings are managed from one location, not having to update across the whole network.
     * i.e. Database settings and particulars for the network.
-    * PerlCNF itself is an design concept where default configuration is delivered with default settings. 
+    * PerlCNF itself is an design concept where default configuration is delivered with default settings.
 
         That the application latter transfers to another alternative store if modified during use, or after application update.
-  * Security and access to network application settings is not locally managed or visible.    
+  * Security and access to network application settings is not locally managed or visible.
   * The configuration needed by some application is not loaded and initiated locally but coming fast from the network.
   * Spex's are server side obtained or run.
     * A SPEX is an server side secure executed perl program output.
@@ -59,7 +59,7 @@ It doesn't require or goes through any additional network or system layers.
     * The hash is used for authentication request part.
   * The client next ends an **auth** request to server.
   * Server authenticates and send either error or the session token.
-  * Both the hash code and the session tokens are further on used. 
+  * Both the hash code and the session tokens are further on used.
     * To perform further socket session encryption I/O during communication.
     * Each Server has its own port and hash, and each client has its own session.
     * Datagrams of others can't read or process as their are scrambled on the network.
@@ -77,7 +77,6 @@ sequenceDiagram
     
 ```
 
-
 ## Perl CNF
 
 ---
@@ -94,7 +93,7 @@ For further info and details, please visit [PerlCNF Project](https://github.com/
 
 ---
 
-**S**erver **P**erl **Ex**ecuted program. 
+**S**erver **P**erl **Ex**ecuted program.
 
 * Provides extension mechanism, that enables future little programs to run.
 On an existing server, that deosn't not require server code to be changed.
@@ -106,4 +105,39 @@ On an existing server, that deosn't not require server code to be changed.
 
 ---
 
-  Info is not available yet.
+  **Info is not available yet.**
+
+## Software Release Stages
+
+--- 
+
+Following are various stages of software development release stages.
+An paradigm invented and adopted by me the author here.
+
+``  Will Budić``
+
+* A Software Project goes through an life cycle of stages, each having its merit and also flexibility of usability.
+  * Each stage can take any amount of time, but must keep compatibility and nature as software is being used.
+    * New stage entered, therefore must be compatible with the data, format and usability of the previous stage.
+    * From old stage to new, format and data, must be migrated and capable for access and valid.
+      At least at the moment from upgrade to continued now new functionality and features.
+    * Moving to an advanced stage, that is drastically different and not compatible with an previous stage is not possible.
+      * If this is the case, a new PROJECT is rather made. And current one is stuck in the current stage.
+* Each stage can have many releases, but not different or own versioning. It is progressive in time, and releases are numbered to an higher number from the previous one. Which is how it this expected.
+* New and current development is done on a branch of the last main stable release.
+  * When a new Release, fully ready and stable, It is merged to the main branch.
+  * After testing the main branch and final good. A new release is tagged on the main branch.
+    * Then and new branch made, for the current possible further development.
+
+
+* There are three stages to an software project.
+
+  * ## Moon Stage
+    * **Info is not available yet.**
+
+  * ## Sun Stage
+    * **Info is not available yet.**
+
+  * ## Earth Stage
+    * **Info is not available yet.**
+
