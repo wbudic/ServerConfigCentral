@@ -133,31 +133,40 @@ I stand to be corrected, and all next mentioned is from my own experience and pr
     * Then and new branch made, for the current possible further development.
 
 
-* There are three stages to an software project.
+### There are three stages to an software project.
 
-  * **Moon Stage**
+* **Moon Stage**
 
-    * This is the initial stage, also the experimental one.
-    * First concepts and plans are established, fun stage, as brings new ones to light.
-    * Like the moon goes through stages great satellite it is, it can as our shield take blows. Go through numerous phases and tribulations.
-    * In this stage the project not only grows. But also bonds us to it, to make usable and become implementation to be adopted.
-    * It becomes an release, when it is ready to enter as project the next stage.
-    * As release it prepares for the next stage. All faults or new features now enter.
-    * When long enough in use as such it is ready to progress to the next stage.
-  * **Sun Stage**
-    * This is the finalization for total use and the total with scruples stage.
-    * Previous concepts are now established in this stage, and all existing features can be only enhanced.
-    * Like the Sun, all ideas and code is put into the light of the Sun, the goal is to squash anything not appropriate.
-    * In this stage usually the project is re-developed, existing and started data is taken in account.
-    * Code is boomed up, bettered and made useful and more user friendly, tested and all concepts are final.
-    * On release, this stage, starts of gearing the Project towards the next stage, very complex one.
+  * This is the initial stage, also the experimental one.
+  * First concepts and plans are established, fun stage, as brings new ones to light.
+  * Like the moon goes through stages great satellite it is, it can as our shield take blows. Go through numerous phases and tribulations.
+  * In this stage the project not only grows. But also bonds us to it, to make usable and become implementation to be adopted.
+  * It becomes an release, when it is ready to enter as project the next stage.
+  * As release it prepares for the next stage. All faults or new features now enter.
+  * When long enough in use as such it is ready to progress to the next stage.
 
-  * **Earth Stage**
-    * This is the final stage, release is fully ready for planet Earth.
-    * Has your program thought about, where the data is stored.
-    * Where and what system uses it, how will different users react?
-    * Will it be abused, smacked around to not only be functional, but not compatible.
-    * Like the earth, this is a stage, of no return it is released to full human use.
-    * To enter this stage, the project has final plans, tests, features and working usability.
-    * On release, this can only work and enhance on missed tidbits of now that it had hit the earth.
+###
+
+* **Sun Stage**
+
+
+  * This is the finalization for total use and the total with scruples stage.
+  * Previous concepts are now established in this stage, and all existing features can be only enhanced.
+  * Like the Sun, all ideas and code is put into the light of the Sun, the goal is to squash anything not appropriate.
+  * In this stage usually the project is re-developed, existing and started data is taken in account.
+  * Code is boomed up, bettered and made useful and more user friendly, tested and all concepts are final.
+  * On release, this stage, starts of gearing the Project towards the next stage, very complex one.
+  
+###
+
+
+* **Earth Stage**
+
+  * This is the final stage, release is fully ready for planet Earth.
+  * Has your program thought about, where the data is stored.
+  * Where and what system uses it, how will different users react?
+  * Will it be abused, smacked around to not only be functional, but not compatible.
+  * Like the earth, this is a stage, of no return it is released to full human use.
+  * To enter this stage, the project has final plans, tests, features and working usability.
+  * On release, this can only work and enhance on missed tidbits of now that it had hit the earth.
 
