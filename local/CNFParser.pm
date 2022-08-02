@@ -35,27 +35,44 @@ our %tables = ();
 our %views  = ();
 our %data   = ();
 our %lists  = ();
-our %anons  = ();
 our %properties   = ();
 our $CONSTREQ = 0;
 
+# Package fields are always global in perl!
+our %anons  = ();
+
 sub new { my ($class, $path, $attrs, $del_keys, $self) = @_;
     if ($attrs){
-        $self = \%$attrs;
-        $CONSTREQ = $self->{'CONSTANT_REQUIRED'};
+        $self = \%$attrs;        
     }else{
-        $self = {"DO_enabled"=>0}; # Enable/Disable DO instruction.
-    }    
+        $self = {DO_enabled=>0, # Enable/Disable DO instruction.
+        ANONS_ARE_PUBLIC=>1     # Anon's are shared and global for all instances of this, by default.
+        }; 
+    }
+    $CONSTREQ = $self->{'CONSTANT_REQUIRED'};
+    if (!$self->{'ANONS_ARE_PUBLIC'}){
+        $self->{'__ANONS__'} = {};
+    }
     bless $self, $class; $self->parse($path, undef, $del_keys) if($path);
     return $self;
 }
+#
 ###
-# Anon properties are public and global. Constances are protected and instance specific.
-# Global means it is also static, i.e. CNFParser::anon(NAME)
+# Anon properties are public variables. Constances are protected and instance specific.
+# Global by default, means they can also be static accessed, i.e. CNFParser::anon(NAME)
 ##
 sub anon {  my ($self, $n, @arg)=@_;
+    my $anechoic = \%anons;
+    if(ref($self) ne 'CNFParser'){
+        $n = $self;
+    }else{
+        my $public =  $self->{'ANONS_ARE_PUBLIC'};
+        if (!$public){            
+            $anechoic = $self->{'__ANONS__'};
+        }
+    }
     if($n){
-        my $ret = $anons{$n};
+        my $ret = %$anechoic{$n};
         return if !$ret;
         if(@arg){
             my $cnt = 1;
@@ -66,7 +83,7 @@ sub anon {  my ($self, $n, @arg)=@_;
         }
         return $ret;
     }
-    return \%anons;
+    return $anechoic;
 }
 #@DEPRECATED attributes are all the constants, externally can be read only.
 sub constant  {my ($self,$c)=@_; return $self->{$c} unless $CONSTREQ; 

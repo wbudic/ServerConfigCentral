@@ -56,8 +56,11 @@ sub socketC {
 
 sub new {  
     my ($self) = @_;    
-    bless { parser => CNFParser-> new (defaultConfigFile(CONFIG)) }, 
-    $self;
+    bless { parser => CNFParser-> new (
+                                            defaultConfigFile(CONFIG), 
+                                            {DO_enabled => 0, ANONS_ARE_PUBLIC => 1}
+                                      )
+        }, $self;
 }
 
 sub defaultConfigFile {
@@ -108,10 +111,14 @@ sub configDumpENV {
 sub tagCNFToArray { 
     my ($self, $tag) = @_;
     die "Invalid no. of parameteres passed." unless @_ == 2;    
-    my  @r = ($tag =~ m/<<(.*?)<(.*?)>(\s*.*?|[\*\.]*)(\s>>+|>>)/gs);    
-    pop @r if $r[-1] eq '>>';
-    pop @r if $r[-1] eq '';
-    return @r;
+    my  @r = ($tag =~ m/<<(.*?)<(.*?)>(\s*.*?|[\*\.]*)(\s>>+|>>)/gs);
+    if(@r){
+        pop @r if $r[-1] eq '>>';
+        pop @r if $r[-1] eq '';        
+    }else{
+        push @r, $tag
+    }
+    return @r
 }
 ###
 # Static method that parses further possibly chained series of commands.
@@ -222,11 +229,11 @@ sub getRepo {
     return $self->{'CNF_GLOBAL'} if($alias eq 'global') && $self->{'CNF_GLOBAL'};
 
     if(-e $path){
-      my $cnf = \CNFParser->new(undef,$path,undef,{});
+      my $cnf = CNFParser->new($path);
       print "Loaded repo config: $path\n";      
       return $cnf;
     }elsif($alias eq 'global'){ 
-        my $cnf = CNFParser->new(undef,{CNF_CONTENT=>$path});
+        my $cnf = CNFParser->new(undef,{CNF_CONTENT=>$path, ANONS_ARE_PUBLIC=>1});
         $cnf->anon()->{'repo_generated'} = 1;
         $self->{'CNF_GLOBAL'} = $cnf;        
         return $cnf;
@@ -246,12 +253,17 @@ sub loadConfigs {
             #print "[$path]\n"; 
             if(-e $path){
                 if(!$configs{$file}){
-                    #Note - Reference \CNFParser stored in hash not the whole parser object.
-                    $configs{$file}  = \CNFParser->new($path);
+                    # Note - Reference \CNFParser stored in hash not the whole parser object.
+                    # New feature added to parser ANONS_ARE_PUBLIC, shielding both globals or private properties.
+                    # To its own respective repositories. Setting it to ANONS_ARE_PUBLIC=>1, all anons will turn global.
+                    # And we don't want that. As actual global is setup only to be from the central.cnf. 
+                    # To which any clent has access to. And again, some repositories can be limited, to who can access them.
+                    # I read your mind. Yes, my head begins to hurt too....
+                    $configs{$file}  = \CNFParser->new($path, {ANONS_ARE_PUBLIC=>0});
                     print "Loaded config: $path\n";
                 }
             }else{            
-                    print "WARNING! Not found: $path\n";
+                    print "WARNING! \@config_files registered file not found: $path\n";
             }
         }
         $self->{'%config_files'}=\%configs;
