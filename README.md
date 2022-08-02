@@ -23,6 +23,8 @@ The current version is  **1.0** and is in the **Moon** stage of the development 
   * Spex's are server side obtained or run.
     * A SPEX is an server side secure executed perl program output.
     * Useful again if an networking application can be run and maintained from one computer. And not having to install it on other computers.
+  * It is implemented in the perl language. To less obscure implementation and to easier troubleshoot on a higher level. Without going into complex levels and hierarchical structures while still is test driven development. Low level modules come from established and in use/invented CPAN modules.
+    * Smaller the perl source code the faster and easier it is to be maintained.
 
 ```mermaid
 stateDiagram-v2
