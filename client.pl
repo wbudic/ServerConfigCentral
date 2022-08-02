@@ -2,7 +2,7 @@
 
 use warnings; use strict; use Syntax::Keyword::Try;
 use lib "./local";
-
+use lib "/home/will/dev/ServerConfigCentral/local";
 require CNFCentral;
 
 
