@@ -40,7 +40,7 @@ try{
     $test->case(join '|', @prop);
     die $test->failed()if @prop != 2;
     $test->subcase("It equals to nb of elements.");
-    die $test->failed()if $prop[0] ne 'name' or $prop[1] ne 'value';
+    die $test->failed("Comparing: \$prop[0]=='".$prop[0]."' and '\$prop[1]=='". $prop[1]."'") if $prop[0] ne 'name' or $prop[1] ne 'value';
     $test->subcase("And they equal 'name' and 'value'");
     
     #
