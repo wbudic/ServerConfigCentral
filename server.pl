@@ -12,8 +12,6 @@ require CNFCentral;
 my $central = CNFCentral ->   server();
 my $cnf     = $central   -> {'parser'};
 my $server  = $central   -> {'socket'}; 
-
-
 #
 $central->loadConfigs();
 #
@@ -37,7 +35,7 @@ while(1) {
             if(    $cmd =~ /^auth/ )    {auth($client,$cmd)}
             elsif( $cmd =~ /^list/ )    {list($client,$cmd)}
             elsif( $cmd =~ /^repo/ )    {repo($client,$cmd)}
-            elsif( $cmd =~ /^prp/  )    {prop($client, $cmd)} 
+            elsif( $cmd =~ /^prop/  )   {prop($client, $cmd)} 
             elsif( $cmd =~ /^help/ )    {help($client)} 
             elsif( $cmd =~ /^end/)      {
                                          $central->{ $client_port } = undef;
@@ -64,7 +62,7 @@ Perl CNF Central Server $ver
 
 Avalable commands:
 
-list - List available repositories.
+list - List available repositories as files.
 prop - Obtains property from an repository.
        \$ prop myRepo/example
        returns -> <<property<example>Hello! You reached my value client.>>
@@ -100,50 +98,99 @@ sub auth {
     $client->recv($cmd, 1024);
     print "Client req: $cmd\n";
     if(length($cmd)>4){        
-        if(    $cmd =~ /^anon/ )    {anon($client,$cmd)}
-        elsif( $cmd =~ /^load/ )    {load($client,$cmd)}
-        elsif( $cmd =~ /^save/ )    {save($client,$cmd)}
+        my $args = $central -> parseCmdChain($cmd);
+        my $func = shift @$args;
+        if(    $func =~ /^anon/ )    {anon($client, $cmd, @$args)}
+        elsif( $func =~ /^load/ )    {load($client, $cmd, @$args)}
+        elsif( $func =~ /^list/ )    {listProps($client, $cmd, @$args)}
+        elsif( $func =~ /^save/ )    {save($client, $cmd, @$args)}
     }
     return $token;
 }
 
+###
+# CNF anon properites are setable variable in any repository.
+# In contrast to the CNF constants, each repository has its own. Setable only in file.
+##
 sub anon {
-    my ($client, $cmd)= @_;     
-    my $args = $central -> parseCmdChain($cmd);
-    my $func = shift @$args;# <- should always will be 'anon' up to this point.       
-    $client->send("<<error<1>Service '$cmd' what?>>\n") if @$args == 0 || !$func;
-
+    my ($client, $cmd, @args)= @_;    
+    
+    $client->send("<<error<1>Service '$cmd' what?>>\n") if @args == 0;
     # Following is an powerful language feature of perl, 
     # called anonymous function pass to the class.    
-    my  $ret = CNFCentral::_processChainedCmd($client, 'global', *accessRepositoryForAnon, @$args);
-    $client->send("$ret\n<<error<2>Service '$cmd' not available yet. It is still Under development.>>\n");
+    my  $ret = CNFCentral::_processChainedCmd($client, 'global', *accessRepositoryForAnon, @args);
+    $client->send($ret);
 }
 
     sub accessRepositoryForAnon{
-        my ($client, $rep_alias, $name, $value)= @_;
-        
+        my ($client, $rep_alias, $name, $value)= @_;        
         my $repo = $central -> getRepo($rep_alias);
         if(!$repo){
-            return "<<error<2>Repository not found: $rep_alias/$name>>";
-        }
+            return "<<error<2>Repository not found: $rep_alias/$name>>"
+        }        
+        my $anons = $repo->anon();
            $value = "" if not $value;
         if($value=~/^=\s*'(.*)'\s*$/){
-           $value=$1;
-           my $anons = $repo->anon();
+           $value=$1;          
            $anons->{$name} = $value;
            return "<<anon<modified $rep_alias/$name>$value>>";
-        }else{
-           $value = $repo->anon($name)
+        }else{           
+           $value = $anons->{$name};
+           if(!$value){
+            return "<<error<3>Anon not found : $rep_alias/$name>>"
+           }
         }
         return "<<anon<$rep_alias/$name>$value>>";
     }
 
+sub listProps {
+    my ($client, $cmd, @args)= @_;
+    if(!@args){
+        $client->send("<<error<2>Service '$cmd' not possible. Like load what for you?>>\n");
+        return;
+    }
+    my  $ret = CNFCentral::_processChainedCmd($client, 'global', *accessRepositoryForListProps, @args);
+    $client->send($ret);
+}
 
+
+ sub accessRepositoryForListProps{
+        my ($client, $rep_alias, $name, $value)= @_;        
+        my $repo = $central -> getRepo($name);        
+        if(!$repo){
+            return "<<error<2>Repository not found: $rep_alias/$name>>"
+        }  
+        my $buffer;
+        foreach(keys %$repo){
+            my ($n,$v) = ($_, $repo->{$_});
+            $buffer .= "$n='$v'\n";
+        }
+        my $anons = $repo->anon();
+        foreach(keys %$anons){
+            my ($n,$v) = ($_, $anons->{$_});
+            $buffer .= "$n='$v'\n";
+        }
+        return $buffer;
+ }
 
 sub load {
-    my ($client, $cmd)= @_; 
-    $client->send("<<error<1>Service '$cmd' not available yet. It is still Under development.>>\n");
+    my ($client, $cmd, @args)= @_;
+    if(!@args){
+        $client->send("<<error<2>Service '$cmd' not possible. Like load what for you?>>\n");
+        return;
+    }
+    my ($path, $content) = ($cnf->{'public_dir'}.'/'. $args[0].'.cnf',"");
+    open(my $fh, "<:perlio", $path ) or $content = undef;
+    read $fh, $content, -s $fh;
+    close $fh;
+    if($content) {  
+       $client->send($content);
+    }else{
+       $client->send("<<error<1>Service '$cmd' errored -> $!");       
+    }     
 }
+
+
 sub save {
     my ($client, $cmd)= @_; 
     $client->send("<<error<1>Service '$cmd' not available yet. It is still Under development.>>\n");
