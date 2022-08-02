@@ -111,7 +111,7 @@ try{
     #
 
     ##
-    # Check if in our global rep newly placed anon.
+    # Check if in our global rep newly placed anon, not if this failes, are you calling the right construction in anon function?
     $chain = $central->parseCmdChain("auth anon JustAnTest = 'Best in the West'"); shift @$chain; shift @$chain;
     $ret = CNFCentral::_processChainedCmd(undef,'global', *AnonTagProperty, @$chain);
     #
@@ -136,7 +136,7 @@ catch{
         if(!$repo){
         # DISABLED we need to simulate here.    
         #     return "<<error<2>Repository not found for $rep_alias/$name>>";
-            $repo = CNFParser->new(undef,{CNF_CONTENT=>$rep_alias});
+            $repo = CNFParser->new(undef,{CNF_CONTENT=>$rep_alias,  ANONS_ARE_PUBLIC=>1});
             $value = $repo->anon($name) if not $value;
         }
            $value = "" if not $value;
