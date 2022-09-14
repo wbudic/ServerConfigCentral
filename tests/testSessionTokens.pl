@@ -1,10 +1,10 @@
-#!/usr/bin/env perl
 use warnings; use strict;
-use lib "./tests";
 use lib "./local";
+use lib "./tests";
 
 require TestManager;
 require CNFCentral;
+require CNF_CBC;
 
 my $test = TestManager -> new($0);
 
@@ -15,10 +15,11 @@ use Syntax::Keyword::Try; try{
     ###    
     my $text = "Hello Wolrd!"; 
     my $central =  CNFCentral-> new();
-       $central->initCBC(checkGenerateSessionToken());
-       my $ enc = $central -> encrypt($text);
+    my $token = checkGenerateSessionToken();
+       my $cbc = CNF_CBC->initCBC($token,'ID_TEST');
+       my $ enc = $cbc -> encrypt($text);
        $test->subcase("enc -> [$enc]");
-       my $ dec = $central -> decrypt($enc);       
+       my $ dec = $cbc -> decrypt($enc);       
        $test->subcase("dec -> [$dec]");
        $test->subcase(qq(sessionKey -> [$central->{'session_key'}]));
        

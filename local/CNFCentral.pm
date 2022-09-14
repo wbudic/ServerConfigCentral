@@ -9,18 +9,20 @@ use warnings; use strict;
 use IO::Socket qw(AF_INET AF_UNIX SOCK_STREAM SHUT_WR inet_aton);
 use Crypt::CBC;
 use Crypt::Blowfish;
+use DateTime;
+use feature qw(signatures);
 
 require CNFParser;  
 
 use constant VERSION => '1.0';
 use constant CONFIG  => 'central.cnf';
 
-our $CBC_IV = "C00000000000000F";
+our %clients;
 
 
 sub server {    my ($class, $config, %self) = @_; 
     $config = defaultConfigFile($class, CONFIG) if ! $config;
-    $self{'parser'} = CNFParser-> new ($config, {Domain => AF_INET, Type => SOCK_STREAM, Proto => 'tcp'});
+    $self{'parser'} = CNFParser-> new ($config, {Domain => AF_INET, Type => SOCK_STREAM, Proto => 'tcp', ANONS_ARE_PUBLIC=>1});
     $self{'socket'} = IO::Socket->new(%{$self{'parser'}})     
        or die "Cannot open socket, is the server running? -> $IO::Socket::errstr\n";    
     $self{'CLIENT_SHUTDOWN'}  = SHUT_WR;
@@ -35,7 +37,7 @@ sub client {    my ($class, $config, %self) = @_;
         # Perl compiler must pass its export constants to the config as attributes, 
         # otherwise they are plain strings if specified only as such in the config.
         #
-        $config, {Domain => AF_INET, Type => SOCK_STREAM, Proto => 'tcp'}   , 
+        $config, {Domain => AF_INET, Type => SOCK_STREAM, Proto => 'tcp', ANONS_ARE_PUBLIC=>1}   , 
         # Following is list of keys to remove from the config as they are server properties.
         # We automate the whole ordeal both client and server to have the same config file. 
         ['LocalPort',  'LocalHost', 'Listen' ,'ReusePort']
@@ -68,32 +70,6 @@ sub defaultConfigFile {
     $config = $self if(scalar $self && !$config);
     if(! -e $config){$config = "~/.config/$config"}
     return  $config;
-}
-
-sub initCBC { my ($self, $token, $id) = @_;
-    my $parser = $self->{'parser'};
-    die if not $parser;
-    $id = $parser->anon('SERVER_ID');     
-    my @prp = sessionTokenToArray($self,$token);
-    die "Error: Invalid session token: $token [".join('|', @prp)."]" if @prp !=2;    
-    $self->{'session_key'} = qq($prp[1]-$id);    
-    $self->{'cbc'}  =  Crypt::CBC->new( 
-         -cipher => "Blowfish",
-         -literal_key => 0,
-         -key =>  $self->{'session_key'},
-         -iv => pack("H*",$CBC_IV),
-         -header => 'none',
-         -padding => 'none',
-         -pbkdf=>'pbkdf2'
-    );
-}
-sub encrypt {my ($self, $text) = @_;
-    return unpack("H*", $self->{'cbc'}->encrypt($text));
-}
-sub decrypt {my ($self,$cipher) = @_;
-    my $ret = $self->{'cbc'}->decrypt(pack("H*",$cipher));
-    $ret =~ s/\0*$//g; #Zero always padded maybe?
-    return $ret;
 }
 
 sub config {
@@ -133,7 +109,7 @@ sub parseCmdChain {
         foreach(@rc){push @recurse, parseCmdChain($_)}
         return \@recurse;
     }else{        
-        @rc = ( $cmd=~ m/(['=].*'|\w*)\s*/gs ); 
+        @rc = ( $cmd=~ m/(['=].*'|[\w\/\.]*)\s*/gs ); 
         while(@rc &&!$rc[-1]){pop @rc}
         return \@rc
     }
@@ -181,7 +157,7 @@ sub generateSessionToken {
        }else{
          @c = $provided =~ m/./g
        }
-    my ($date,$code) = (scalar localtime, undef);    
+    my ($date,$code) = (&stamp, undef);    
     if(@c<28){    
         my $err =  qq(Error ->[@c] Pick token is less then 28 digits long.\n\t);
         die $err
@@ -189,12 +165,62 @@ sub generateSessionToken {
     $code .= sprintf ("%s%s", $c[rand(@c)], $c[rand(@c)])foreach(1..8);    
     return qq(<<session<$date>$code>>);
 }
+
+sub stamp {
+    my $now   = DateTime->now();        
+    return $now->ymd.' '.$now->hms;
+}
+
 ###
 # Client/Server uses following to obtain token date and value.
 ###
 sub sessionTokenToArray { 
     if(@_>1){shift} my $token = shift;
     return ($token =~ m/<<session<(.*)>(.*)>>/)  
+}
+#
+
+
+sub registerClientWithToken {
+    my ($self,$client, $token) = @_;
+     if($client && $token){
+        my $parser = $self->{'parser'};
+        my $id = $parser->anon('SERVER_ID');
+        $clients{$client->peerport()} = CNF_CBC->initCBC($token, $id);
+     }
+     $token
+}
+sub unRegisterClientFromToken {
+    my ($self,$client) = @_;
+     if($client){
+        delete $clients{$client->peerport()} if $clients{$client->peerport()}
+     }
+}
+
+sub scrumbledSend {
+    my ($self,$client, $content) = @_;
+    if(exists $clients{$client->peerport()} ){
+       my $cbc = $clients{$client->peerport()};
+       $content = $cbc->encrypt($content);
+       $client -> send ($content)
+    }else{
+       $client -> send($content); # TODO - We are still sending, as main pupose of the CNF auth protocol 
+                                  #        is not security, but to have an ensured directed communication.
+       print "Error, send to not authenticated $client content.";
+    }
+}
+sub scrumbledReceive {
+    my ($self, $client) = @_;
+    my $content;
+    if(exists $clients{$client->peerport()} ){
+       my $cbc = $clients{$client->peerport()};
+       $client -> recv($content, 64 * 1024); 
+       $content = $cbc->decrypt($content);       
+    }else{
+       $client -> recv($content, 64 * 1024);
+       print "Error, received to not authenticated $client content.";
+    }
+    return $content
 }
 
 sub checkIPrange {
@@ -272,8 +298,7 @@ sub loadConfigs {
         die qq(ERROR! Property '\@config_files' has not been found in central config: ./$CNF_PATH\n)
     }
 }
-
+1;
 
 __END__
 
-1;

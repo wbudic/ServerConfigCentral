@@ -4,8 +4,10 @@
 # sudo ufw allow perl-cnf
 # Which is set/found in /etc/services
 # perl-cnf	1028/tcp			# PerlCnf server port.
-use warnings; use strict; use Syntax::Keyword::Try;
-use lib "./local";
+use warnings; use strict; use Syntax::Keyword::Try; 
+#use lib "./local";
+use lib "/home/will/dev/ServerConfigCentral/local";
+
 
 require CNFCentral;
 
@@ -16,18 +18,20 @@ my $server  = $central   -> {'socket'};
 $central->loadConfigs();
 #
 while(1) {
-    COMM: print " Server is listenning...\n";
+    COMM: print " Server is listening...\n";
     if(my $client = $server->accept()) {
 
         my ($cmd,$rl,$client_address,$client_port);
+        
+        my $stamp = $central->stamp();
+        my $host_hdr = `hostname`. ' '.$stamp; 
+        
         $client_address = $client->peerhost();
         $client_port = $client->peerport();
-        my $host_hdr = `hostname`. scalar localtime; 
         $host_hdr =~ s/\n/:/g;
-        $client->send("<<header<$host_hdr>>>\n");
+        $client->send("<<header<$host_hdr>>>\n");        
         
-        
-        print "Connection from: $client_address ($client_port)\n";
+        print "Connection from: $client_address ($client_port) - $stamp\n";
              
             my $read = $cmd= "";            
             $client->recv($cmd,1024);
@@ -38,7 +42,7 @@ while(1) {
             elsif( $cmd =~ /^prop/  )   {prop($client, $cmd)} 
             elsif( $cmd =~ /^help/ )    {help($client)} 
             elsif( $cmd =~ /^end/)      {
-                                         $central->{ $client_port } = undef;
+                                         $central->unRegisterClientFromToken($client);                                         
                                          $client->close(); 
                                          print "Connection ended: $client_address($client_port)\n";
                                          goto COMM
@@ -73,7 +77,7 @@ auth - Initiates CNF Central client/server authentic communication and token ses
        And also to temporarly persist the session during the servers running state.
 end  - Indicates to server proper closing communication from the client side.
 
-Authentication based  commands:
+Authentication based commands:
 
 Client has to be setup, for server configuration specifics, the following to work.
 See documentation for further info.
@@ -81,9 +85,12 @@ See documentation for further info.
 load - Load and send a whole repo or configuration file.
 save - Store client send whole repo, this is usually an copy of a loaded one.
 anon - Store client or global by id only accessible property and value.
-       \$con_cnt= client.pl -c "prop global/connection_count";
-       \$con_cnt=\$con_cnt+1;
-       \$client.pl -c "auth anon global connection_count = \$con_cnt");
+       you\@terminal \$ con_cnt= client.pl -c "prop global/connection_count";
+       you\@terminal \$ con_cnt=\$con_cnt+1;
+       you\@terminal \$ client.pl -c "auth anon global connection_count = \$con_cnt");
+log  - Add a stamped CNF formated log line at start of file central.
+       Withouth parameters lists last ten entries.
+       you\@terminal \$ echo "Hello World!" | ./client.pl - -c "auth log {}"
 
 __HELP
 )}
@@ -97,12 +104,14 @@ sub auth {
     print "Token send: $token\n";
     $client->recv($cmd, 1024);
     print "Client req: $cmd\n";
-    if(length($cmd)>4){        
+    $central->registerClientWithToken($client, $token);
+    if(length($cmd)>2){        
         my $args = $central -> parseCmdChain($cmd);
         my $func = shift @$args;
         if(    $func =~ /^anon/ )    {anon($client, $cmd, @$args)}
         elsif( $func =~ /^load/ )    {load($client, $cmd, @$args)}
         elsif( $func =~ /^list/ )    {listProps($client, $cmd, @$args)}
+        elsif( $func =~ /^log/  )    {logCNF($client, $cmd, @$args)}
         elsif( $func =~ /^save/ )    {save($client, $cmd, @$args)}
     }
     return $token;
@@ -171,7 +180,61 @@ sub listProps {
             $buffer .= "$n='$v'\n";
         }
         return $buffer;
- }
+}
+
+sub logCNF {
+    my ($client, $cmd, @args)= @_;
+    my ($log_file, $log_tmp) = ($cnf->{'public_dir'}.'/central.log', '/tmp/'.$client->peerhost().'_central.log');
+    
+    if(!@args || $args[0] eq 'list'){       
+        my ($cnt, $limit)=(0,3);
+        my $content;
+        open(my $fhL, "<:perlio", $log_file);
+        while(<$fhL>){
+            my $line = $_;
+            if($line=~/<<\$\$</){
+               last if ($cnt++>$limit);
+            }
+            $line =~ s/\\n/\n/g;
+            $content .= $line;
+        }
+        close $fhL;
+        $central -> scrumbledSend($client, $content);
+        return;
+    }
+    my $user = $args[-1];
+    $client->send("<<log<send>>>");
+    my  $content;
+    $client->recv($content, 64*1024);
+    $content =~ s/^\s|\s$//g;
+     
+    if($content){    
+        open(my $fhL, "<:perlio", $log_file);
+        open(my $fhT, ">:perlio", $log_tmp);
+        
+        print $fhT "<<\$\$<$user@".$client->peerhost().' '.$central->stamp().">$content>>\n";
+        if($fhL){
+            while(<$fhL>){ print $fhT $_ }
+            close $fhL;
+        }
+        close $fhT;
+        
+        open($fhT, "<:perlio", $log_tmp);
+        open($fhL, ">:perlio", $log_file);
+        if($fhL){
+            while(<$fhT>){
+                print $fhL $_;
+                print $_,"\n";
+            }
+        }
+        close $fhT;
+        close $fhL;
+        unlink $log_tmp;
+        $client->send("<<log<received>>>");
+    }
+    
+}
+
 
 sub load {
     my ($client, $cmd, @args)= @_;
@@ -192,8 +255,25 @@ sub load {
 
 
 sub save {
-    my ($client, $cmd)= @_; 
-    $client->send("<<error<1>Service '$cmd' not available yet. It is still Under development.>>\n");
+    my ($client, $cmd, @args)= @_; 
+    if(!@args){
+        $client->send("<<error<2>Service '$cmd' not possible, if not providing a file name.>>\n");
+        return;
+    }
+    mkdir $cnf->{'public_dir'}.'/'.$client->peerhost();
+    my ($path, $content) = ($args[0],"");
+        $path=~s/\//_/g; $path = substr $path, 1 if $path =~ /^_/;
+        $path = $cnf->{'public_dir'}.'/'.$client->peerhost()."/$path";
+    if(open(my $fhW, ">:perlio", $path )){    
+       $client->send("<<save<send>>>");
+       $client->recv($content, 64*1024);
+       print $fhW $content;       
+       close $fhW;
+       $client->send("<<save<saved>>>");       
+    }else{
+       $client->send("<<error<1>Service '$cmd' errored -> $!");
+    } 
+
 }
 
 

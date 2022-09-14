@@ -12,12 +12,11 @@ my $test = TestManager -> new($0);
 my $central;
 
 try{
-
-    
+   
 
     ###
     # Test instance creation.
-    #
+    ###
     die $test->failed() if not $central = CNFCentral->new();
     $test->case("Passed new instance CNFCentral.");
     #  
@@ -28,6 +27,16 @@ try{
     die $test->failed()if not my $token = CNFCentral::generateSessionToken();   
     #
     $test->case("Passed CNFCentral::generateSessionToken().");
+    $test-> nextCase();    
+    #
+
+    ###
+    # Test for server id anon.
+    ###    
+    die $test->failed() if not my $server_id = $central->{parser}->anon('SERVER_ID');
+    $test->case("SERVER_ID: $server_id");
+    die $test->failed("SERVER_ID: '$server_id' != 'H336NL2-NMW-D0F-WKM'") if $server_id ne 'H336NL2-NMW-D0F-WKM';
+    $test->subcase("SERVER_ID: $server_id == 'H336NL2-NMW-D0F-WKM'");    
     $test-> nextCase();    
     #
 
@@ -55,7 +64,6 @@ try{
     die $test->failed() if @prop != 2;
     #
 
-
     #
     $test-> nextCase(); 
     #
@@ -65,10 +73,7 @@ try{
     #    
     my $global    = $central->getRepo();    
     die $test->failed('Expected $global is undef!') if not $global;   
-
-    
-    
-        
+         
     #
     $test-> nextCase(); 
     #
@@ -109,7 +114,13 @@ try{
     #
     $test-> nextCase(); 
     #
+      $chain = $central->parseCmdChain("auth save /home/nancy/dev/PerlCNF/file.cnf");
+      die $test->failed() if @$chain !=3;
+      $test->case('Passed parse file path.'.join ' ', @$chain); 
 
+    #
+    $test-> nextCase(); 
+    #
     ##
     # Check if in our global rep newly placed anon, not if this failes, are you calling the right construction in anon function?
     $chain = $central->parseCmdChain("auth anon JustAnTest = 'Best in the West'"); shift @$chain; shift @$chain;
