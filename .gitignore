@@ -19,3 +19,4 @@ bck_*
 *.swn
 cgisess_*
 .idea
+.pls_cache
