@@ -13,6 +13,7 @@ use DateTime;
 use feature qw(signatures);
 
 require CNFParser;  
+require CNF_CBC;
 
 use constant VERSION => '1.0';
 use constant CONFIG  => 'central.cnf';
@@ -188,13 +189,13 @@ sub registerClientWithToken {
         my $id = $parser->anon('SERVER_ID');
         $clients{$client->peerport()} = CNF_CBC->initCBC($token, $id);
      }
-     $token
+     return $token
 }
 sub unRegisterClientFromToken {
-    my ($self,$client) = @_;
-     if($client){
-        delete $clients{$client->peerport()} if $clients{$client->peerport()}
-     }
+    my ($self,$client) = @_; my $key =   $client->peerport();
+    if ($key && exists $clients{$key} ){    
+        delete $clients{$key}
+    }     
 }
 
 sub scrumbledSend {
@@ -298,7 +299,5 @@ sub loadConfigs {
         die qq(ERROR! Property '\@config_files' has not been found in central config: ./$CNF_PATH\n)
     }
 }
+
 1;
-
-__END__
-

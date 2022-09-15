@@ -19,12 +19,12 @@ sub initCBC ($class, $token, $id){
             session_key => $key,
             cbc         => Crypt::CBC->new( 
                                         -cipher => "Blowfish",
-                                        -literal_key => 0,
-                                        -key =>  $key,
+                                        -pass =>  $key,
                                         -iv => pack("H*", $CBC_IV),
                                         -header => 'none',
                                         -padding => 'none',
-                                        -pbkdf=>'pbkdf2'
+                                        -nodeprecate=>1 ,
+                                        -pbkdf=>'randomiv'
             )
     }, $class
 }

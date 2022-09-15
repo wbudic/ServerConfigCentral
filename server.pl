@@ -88,7 +88,7 @@ anon - Store client or global by id only accessible property and value.
        you\@terminal \$ con_cnt= client.pl -c "prop global/connection_count";
        you\@terminal \$ con_cnt=\$con_cnt+1;
        you\@terminal \$ client.pl -c "auth anon global connection_count = \$con_cnt");
-log  - Add a stamped CNF formated log line at start of file central.
+log  - Add a stamped CNF formated log line at start of file central.log.
        Withouth parameters lists last ten entries.
        you\@terminal \$ echo "Hello World!" | ./client.pl - -c "auth log {}"
 
@@ -118,7 +118,7 @@ sub auth {
 }
 
 ###
-# CNF anon properites are setable variable in any repository.
+# CNF anon properites are an setable variable in any repository.
 # In contrast to the CNF constants, each repository has its own. Setable only in file.
 ##
 sub anon {
@@ -204,8 +204,8 @@ sub logCNF {
     }
     my $user = $args[-1];
     $client->send("<<log<send>>>");
-    my  $content;
-    $client->recv($content, 64*1024);
+    my  $content = $central -> scrumbledReceive($client);
+   # $client->recv($content, 64*1024);
     $content =~ s/^\s|\s$//g;
      
     if($content){    
@@ -224,7 +224,7 @@ sub logCNF {
         if($fhL){
             while(<$fhT>){
                 print $fhL $_;
-                print $_,"\n";
+                #print $_,"\n";
             }
         }
         close $fhT;

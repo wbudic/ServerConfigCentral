@@ -51,9 +51,8 @@ sub issueCommand { my ($cmd) = @_;
         if($cmd =~ m/^auth/){            
             my $c = 'auth';
             $socket->send($c."\0");
-            $socket->recv($buffer, 1024);
-            $token = $central->sessionTokenToArray($buffer);
-            print ("Received token: $buffer\n");
+            $socket->recv($buffer, 1024);            
+            print ("Recieved token: $buffer\n");
             $central->registerClientWithToken($socket, $buffer);
             $c = substr $cmd,5;
             $buffer ="";
@@ -95,21 +94,21 @@ sub issueCommand { my ($cmd) = @_;
                     $socket->send("log add ".$ENV{USER});
                     $socket->recv($buffer, 1024);
                     if($buffer =~ "<<log<send>>>"){
-                        print "Sending: log add $c ...";
+                        print "Sending: log add $c $piped...";
                         if($c=~/\{\}$/){
                             ($c=~m/(.*)(\{\}$)/g);
-                            $socket->send($1) if $1;                            
+                         #   $socket->send($1) if $1;                            
                             if($piped){
-                               $socket->send($piped);
+                               $central->scrumbledSend($socket, $piped);
                             }else{
                                 print "Warning - You didn't pipe in any log text.\n"
                             }
                         }else{
                             $socket->send($c);
                         }
-                        print "done\n";
+                        print "done\n";                        
                         $socket->recv($buffer, 1024);
-                        print $buffer,"\n";
+                        print "Server response: $buffer","\n";                  
                         return;
                     }else{
                             $socket->close();
@@ -118,7 +117,7 @@ sub issueCommand { my ($cmd) = @_;
                     }
                 }else{                    
                     $socket->send("log list\0");   
-                    print($central -> scrumbledReceive($socket));
+                    print($central -> scrumbledReceive($socket));                     
                     return
                 }               
             }
