@@ -189,6 +189,7 @@ sub logCNF {
     if(!@args || $args[0] eq 'list'){       
         my ($cnt, $limit)=(0,3);
         my $content;
+        $limit = int($args[1]) if $args[1] && int($args[1])>0;
         open(my $fhL, "<:perlio", $log_file);
         while(<$fhL>){
             my $line = $_;
@@ -204,10 +205,8 @@ sub logCNF {
     }
     my $user = $args[-1];
     $client->send("<<log<send>>>");
-    my  $content = $central -> scrumbledReceive($client);
-   # $client->recv($content, 64*1024);
-    $content =~ s/^\s|\s$//g;
-     
+    my $content = $central -> scrumbledReceive($client);   
+       $content =~ s/^\s|\s$//g;     
     if($content){    
         open(my $fhL, "<:perlio", $log_file);
         open(my $fhT, ">:perlio", $log_tmp);
@@ -247,7 +246,8 @@ sub load {
     read $fh, $content, -s $fh;
     close $fh;
     if($content) {  
-       $client->send($content);
+       $client->send("<<load<send>>>");
+       $central -> scrumbledSend($client, $content);       
     }else{
        $client->send("<<error<1>Service '$cmd' errored -> $!");       
     }     
@@ -266,7 +266,7 @@ sub save {
         $path = $cnf->{'public_dir'}.'/'.$client->peerhost()."/$path";
     if(open(my $fhW, ">:perlio", $path )){    
        $client->send("<<save<send>>>");
-       $client->recv($content, 64*1024);
+        $central -> scrumbledSend($content);
        print $fhW $content;       
        close $fhW;
        $client->send("<<save<saved>>>");       

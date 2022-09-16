@@ -56,7 +56,19 @@ sub issueCommand { my ($cmd) = @_;
             $central->registerClientWithToken($socket, $buffer);
             $c = substr $cmd,5;
             $buffer ="";
-            if($c=~/^save/){
+            if($c=~/^load/){
+               $socket->send($c."\0"); 
+               $socket->recv($buffer, 1024);
+               if($buffer =~ "<<load<send>>>"){
+                  $central -> scrumbledReceive($socket);
+                  return
+               }else{
+                  $socket->close();
+                  print "ERROR: Server responded with: $buffer";
+                  return;
+               }
+            }
+            elsif($c=~/^save/){
                 my $file = substr $c,5;
                 if(-e $file){
 
@@ -67,7 +79,7 @@ sub issueCommand { my ($cmd) = @_;
                         open(my $fh, "<:perlio", $file ) or $buffer = undef;
                            read $fh, $buffer, -s $fh;
                         close   $fh;
-                        $socket->send($buffer);
+                        $central -> scrumbledSend($socket, $buffer);                        
                         $socket->recv($buffer, 1024);
                         if($buffer =~ "<<save<send>>>"){
                             print "File has been successfully saved on server: $file"
@@ -89,36 +101,47 @@ sub issueCommand { my ($cmd) = @_;
 
             }elsif($c=~/log/){
                 
-                if(length $c > 3 && $c !~ /list$/){
-                    $c = substr $c, 3;
+                if(length $c > 3 && $c =~ /^log add/){
+                    $c = substr $c, 3; 
+                    $c = substr $c, 4 if $c =~ /^ add/;
                     $socket->send("log add ".$ENV{USER});
                     $socket->recv($buffer, 1024);
+                    
                     if($buffer =~ "<<log<send>>>"){
-                        print "Sending: log add $c $piped...";
+                        print "Sending: log $c ...";
                         if($c=~/\{\}$/){
-                            ($c=~m/(.*)(\{\}$)/g);
-                         #   $socket->send($1) if $1;                            
                             if($piped){
-                               $central->scrumbledSend($socket, $piped);
+                                ($c=~m/(.*)(\{\}$)/g);    
+                                $piped = "$\n$piped" if $1;
+                                $central->scrumbledSend($socket, $piped);
                             }else{
                                 print "Warning - You didn't pipe in any log text.\n"
                             }
                         }else{
-                            $socket->send($c);
+                           $central->scrumbledSend($socket, $c);
                         }
                         print "done\n";                        
                         $socket->recv($buffer, 1024);
                         print "Server response: $buffer","\n";                  
                         return;
                     }else{
-                            $socket->close();
-                                print "ERROR: Server responded with: $buffer";
-                            return;
+                        print "ERROR: Server responded with: $buffer";
+                        $socket->close();
+                        return;
                     }
                 }else{                    
-                    $socket->send("log list\0");   
-                    print($central -> scrumbledReceive($socket));                     
-                    return
+                    $socket->send("$c");   
+                    $buffer = $central -> scrumbledReceive($socket);
+                    if($strip){
+                                foreach(split(/\n/,$buffer)) {
+                                    my @tag = $central-> tagCNFToArray($_);
+                                    if(scalar @tag>1){
+                                        $strip = $tag[2]; $strip =~ s/^\s*|\s*$//g;
+                                        print "$tag[1] | $strip\n";
+                                    }
+                                }
+                                return;    
+                    }                 
                 }               
             }
             else{            
@@ -127,22 +150,18 @@ sub issueCommand { my ($cmd) = @_;
             }
         }else{
             $socket->send($cmd);
+            while(sysread $socket, $read, 1024){ $buffer .= $read}
         }
-                
-        while(sysread $socket, $read, 1024){ $buffer .= $read}
-        if($strip){
-            #m/<<(.*?)<(.*?)>(\s*.*|[\*\.]*)>>>/gs          
-           #my @tag = ($buffer =~ m/<<(.*?)<(.*?)>(.*)>>+/gs); # $central-> tagCNFToArray($buffer);
-            my @tag = $central-> tagCNFToArray($buffer);
-
-           if(scalar @tag>1){
-              $strip = $tag[2]; $strip =~ s/^\s*|\s*$//g;
-              print $strip;
-           }else{
-              print "$buffer\n";
-           }
+        if($strip){     
+                    foreach(split(/\n/,$buffer)) {
+                        my @tag = $central-> tagCNFToArray($_);
+                        if(scalar @tag>1){
+                            $strip = $tag[2]; $strip =~ s/^\s*|\s*$//g;
+                            print $strip;
+                        }
+                    }        
         }else{
-            print "Received: $buffer\n";
+            print "Recieved: $buffer\n";
         }
     }catch{
         print "Socket Error -> ".$@;

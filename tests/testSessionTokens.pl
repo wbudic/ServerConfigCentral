@@ -17,11 +17,13 @@ use Syntax::Keyword::Try; try{
     my $central =  CNFCentral-> new();
     my $token = checkGenerateSessionToken();
        my $cbc = CNF_CBC->initCBC($token,'ID_TEST');
+       my $cbc2 = CNF_CBC->initCBC($token,'ID_TEST');
        my $ enc = $cbc -> encrypt($text);
        $test->subcase("enc -> [$enc]");
        my $ dec = $cbc -> decrypt($enc);       
+       my $ dec2 = $cbc2 -> decrypt($enc);       
        $test->subcase("dec -> [$dec]");
-       $test->subcase(qq(sessionKey -> [$central->{'session_key'}]));
+       $test->subcase(qq(sessionKey -> [$cbc->{'session_key'}]));
        
     die $test->failed() if not $text eq $dec;
     #
