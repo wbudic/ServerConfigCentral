@@ -86,14 +86,14 @@ sequenceDiagram
   * Provides a user friendly, property value pair processing, easy configuration and processing under special specifications.  
   * It is geared towards the Perl language semantics and its ultra fast hash organizing.
 
-For further info and details, please visit [PerlCNF Project](https://github.com/wbudic/PerlCNF/blob/master/README.md).
+For further info and details, please visit [PerlCNF Project](https://github.com/wbudic/PerlCNF/README.md).
 
 ## SPEX
 
 **S**erver **P**erl **Ex**ecuted program.
 
 * Provides extension mechanism, that enables future little programs to run.
-On an existing server, that deosn't not require server code to be changed.
+On an existing server, that doesn't not require server code to be changed.
 * It has to be limited on what can execute in an sandbox from the server and system.
 * It activates from an embedded CNF property, in any config file.
   * The config files are usually located in a local **./configs** directory.
@@ -123,6 +123,9 @@ I stand to be corrected, and all next mentioned is from my own experience and pr
   * After testing the main branch and final good. A new release is tagged on the main branch.
     * Then and new branch made, for the current possible further development.
 
+## Usage Examples
+
+* [Employee Work Scenario](README-USAGE-Employee_Scenario.md)
 
 ### There are three stages to an software project.
 
@@ -160,3 +163,10 @@ I stand to be corrected, and all next mentioned is from my own experience and pr
   * On release, the project can only be further worked on, to be enhance on existing, or fix uncomprenhisble situations,
    or missed and not foreseeing tidbits. As it had hit the general use on earth.
 
+---
+See also:  [Configuration Network File Format Specifications](https://github.com/wbudic/PerlCNF/CNF_Specs.md)
+
+---
+   This document v.1.0 is from project ->  (https://github.com/wbudic/ServerConfigCentral)
+   An open source application under <https://choosealicense.com/licenses/isc/>
+   Exception, this specification file is not to be modified from an third party.
