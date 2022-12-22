@@ -1,8 +1,7 @@
 #!/usr/bin/env perl
 
 use warnings; use strict; use Syntax::Keyword::Try;
-use lib "./local";
-use lib "/home/will/dev/ServerConfigCentral/local";
+use lib "local";
 require CNFCentral;
 
 my $central = CNFCentral -> client();
@@ -52,15 +51,16 @@ sub issueCommand { my ($cmd) = @_;
             my $c = 'auth';
             $socket->send($c."\0");
             $socket->recv($buffer, 1024);            
-            print ("Recieved token: $buffer\n");
+            print ("Received token: $buffer\n");
             $central->registerClientWithToken($socket, $buffer);
             $c = substr $cmd,5;
             $buffer ="";
             if($c=~/^load/){
                $socket->send($c."\0"); 
                $socket->recv($buffer, 1024);
-               if($buffer =~ "<<load<send>>>"){
-                  $central -> scrumbledReceive($socket);
+               
+               if($buffer =~ "<<load<send>>>"){                
+                  print $central -> scrumbledReceive($socket);                  
                   return
                }else{
                   $socket->close();
@@ -161,13 +161,15 @@ sub issueCommand { my ($cmd) = @_;
                         }
                     }        
         }else{
-            print "Recieved: $buffer\n";
+            print "Received: $buffer\n";
         }
     }catch{
         print "Socket Error -> ".$@;
     }
     $socket->close()
 }
+
+ 
 
 
 sub printHelp {while(<DATA>){print $_}return;}
@@ -182,14 +184,19 @@ This file can also be placed into the ~./.config directory.
 Options:
 
 -c='{command}'' -c... -         - Command to issue.
--p=name {repository path}       - Fetches propery by name from an available repoistory config file.
+-p=name {repository path}       - Fetches property by name from an available repository config file.
 ./client.pl "{direct command}"  - Default behaviour is to issue command from the command line.
 -s                              - Strip CNF response tag, including header.
                                   Translates property output value only if placed before command.
---h -help_Me -? --help          - Prints this help. Perl trickery for the wickery.
+--h -help_Me -? --help          - Prints this help. Perl trickery for the vickery.
 
 Commands:
 
 list {path}     - Lists contents from the servers <<CONST<<public_dir>> location. 
 prp             - Obtain property value.
+
+Examples:
+
+./client.pl -c "help"       - List available server commands, this help is for the client.
+
 --------------------------------------------------------------------------------------------------------------

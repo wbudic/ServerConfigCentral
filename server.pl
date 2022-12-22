@@ -5,13 +5,12 @@
 # Which is set/found in /etc/services
 # perl-cnf	1028/tcp			# PerlCnf server port.
 use warnings; use strict; use Syntax::Keyword::Try; 
-#use lib "./local";
-use lib "/home/will/dev/ServerConfigCentral/local";
+use lib "local";
 
 
 require CNFCentral;
 
-my $central = CNFCentral ->   server();
+my $central = CNFCentral -> server();
 my $cnf     = $central   -> {'parser'};
 my $server  = $central   -> {'socket'}; 
 #

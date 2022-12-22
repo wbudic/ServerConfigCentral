@@ -15,7 +15,7 @@ use feature qw(signatures);
 require CNFParser;  
 require CNF_CBC;
 
-use constant VERSION => '1.0';
+use constant VERSION => '1.1';
 use constant CONFIG  => 'central.cnf';
 
 our %clients;
@@ -284,7 +284,7 @@ sub loadConfigs {
                     # New feature added to parser ANONS_ARE_PUBLIC, shielding both globals or private properties.
                     # To its own respective repositories. Setting it to ANONS_ARE_PUBLIC=>1, all anons will turn global.
                     # And we don't want that. As actual global is setup only to be from the central.cnf. 
-                    # To which any clent has access to. And again, some repositories can be limited, to who can access them.
+                    # To which any client has access to. And again, some repositories can be limited, to who can access them.
                     # I read your mind. Yes, my head begins to hurt too....
                     $configs{$file}  = \CNFParser->new($path, {ANONS_ARE_PUBLIC=>0});
                     print "Loaded config: $path\n";

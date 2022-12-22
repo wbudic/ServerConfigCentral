@@ -1,0 +1,41 @@
+<<IMAGES_PAGE<TREE>
+Title:Images Page 
+Body: onLoad="initPage()"
+<*<HEADER>*>
+
+    [row[        
+        [cell[   
+            style: text-align:center; background:#00ffff0d        
+            [h2[IMAGES PAGE]h2]
+        ]cell]
+    ]row]
+
+    [#[<img src="images/PerlCNF.png" style="float:right"/>]#]
+    
+    [list_images[
+    path = ~/Pictures
+    ]list_images]
+    
+    [row[        
+        [cell[            
+            [h3[ Available Pages ]h3] 
+            [*[file_list_html]*]  
+        ]cell]
+    ]row]
+
+
+
+    
+
+>>
+<<HEADER<TREE> _HAS_PROCESSING_PRIORITY_
+    [CSS[
+        [@@[artifacts/main.css]@@]
+    ]CSS]
+>>
+
+<<CNF_TO_HTML<PLUGIN>
+    package     : HTMLProcessorPlugin
+    subroutine  : convert
+    property    : IMAGES_PAGE
+>>

@@ -3,7 +3,9 @@
 This is a network based application project.
 That provides an perl based centralized CNF configuration solution.
 
-The current version is  **1.0** and is in the **Moon** stage of the development process, so it is early days.
+The current version is  **1.1** and is in the **Moon** stage of the development process.
+Current in early BETA, also with this project, provided is now also an web_server.pl, sporting and showing some initial development,
+how CNFParser **v.2.6** can be powerfully utilised and used for configuring and creating web pages, for your local network.
 
 ## The Concept
 

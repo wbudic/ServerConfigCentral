@@ -1,0 +1,146 @@
+!CNF2.6
+
+<<<CONST
+LocalAddr = nomad
+LocalPort = 8080
+>>
+
+<<HOME_PAGE<TREE>
+
+Title:Home Page of ACME Industries of Doom
+Body: onLoad="initPage()"
+<*<HEADER>*>
+
+    [row[        
+        [cell[   
+            style: text-align:center; background:#00ffff0d        
+            [h2[HOME PAGE]h2]
+        ]cell]
+    ]row]
+    [row[        
+        [cell[
+            [img[
+                    src = configs/docs/images/PerlCNF.png
+                    style = float:left
+            ]img]
+            <div<
+
+               style: padding-top: 80px;
+
+               [#[<b>Hello</b>, Welcome to a simple front page.]#]
+            >div>
+        ]cell]
+    ]row]
+
+    [row[        
+        [cell[            
+            [h3[ Available Pages ]h3] 
+            [*[file_list_html]*]  
+        ]cell]
+    ]row]
+
+
+
+    [#[<img src="images/PerlCNF.png" style="float:left"/>]#]
+
+    
+>>
+<<HEADER<TREE> _HAS_PROCESSING_PRIORITY_
+[STYLE[
+    [#[
+    body{
+        font-family: Segoe UI,Helvetica,Bookman,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
+        font-size: 14px;
+        some-background-image: url('configs/docs/images/PerlCNF.png');
+        margin: 0; 
+        padding:0;  
+    }
+    div{
+        text-align: left; 
+        font-size: medium;               
+        display: table-cell;
+        padding: 3px 10px;
+    }
+
+   .main {
+    font-family: Bookman; 
+    position: relative;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #999999;
+    display: flex;
+    justify-content: center;
+   }
+   .row{
+     border:0;
+     display: table-row;
+     vertical-align: middle;
+     margin-bottom:33px
+   }
+   .cell {
+        border: 3px solid #00ffff0d;
+        display: table-cell;
+        padding: 3px 10px;
+    }
+
+
+    p {
+    font-family: Bookman;
+    font-weight: bold;
+    margin-left: 70px;    
+    text-align: justify;
+    padding-top: 50px;
+    padding-left: 20px;
+    padding-bottom: 50px;
+    }
+
+    img {
+    float: left;
+    padding: 0 10px
+    }
+
+    .divTable{
+        display: table;
+        width: 80%;
+    }
+    .divTableRow {
+        display: table-row;
+    }
+    .divTableHeading {
+        background-color: #EEE;
+        display: table-header-group;
+    }
+    .divTableCell, .divTableHead {
+        border: 1px solid #999999;
+        display: table-cell;
+        padding: 3px 10px;
+    }
+    .divTableHeading {
+        background-color: #EEE;
+        display: table-header-group;
+        font-weight: bold;
+    }
+    .divTableFoot {
+        background-color: #EEE;
+        display: table-footer-group;
+        font-weight: bold;
+    }
+    .divTableBody {
+        display: table-row-group;
+    }
+
+    ]#]
+]STYLE]
+>>
+
+
+<<@<%HEADER_NO_CACHE>
+    Content-Type    = text/html
+    Cache-control   = no-store, no-cache, must-revalidate, post-check=0, pre-check=0
+    pragma          = no-cache
+>>
+<<CNF_TO_HTML<PLUGIN>
+    package     : HTMLProcessorPlugin
+    subroutine  : convert
+    property    : HOME_PAGE
+>>

@@ -1,0 +1,18 @@
+<<ABOUT_PAGE<TREE>
+Title:About Page for ACME Industries of Doom
+    [h2[
+        [#[THE ABOUT PAGE]#]
+    ]h2]
+    [div[
+        [#[To contact as you need our details, that have been emailed to you.]#]
+        [div[
+            [#[<img src="images/PerlCNF.png" style="float:right"/>]#]
+        ]div]
+    ]div]
+>>
+
+<<CNF_TO_HTML<PLUGIN>
+    package     : HTMLProcessorPlugin
+    subroutine  : convert
+    property    : ABOUT_PAGE
+>>
