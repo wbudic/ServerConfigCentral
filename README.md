@@ -4,7 +4,7 @@ This is a network based application project.
 That provides an perl based centralized CNF configuration solution.
 
 The current version is  **1.1** and is in the **Moon** stage of the development process.
-Current in early BETA, also with this project, provided is now also an web_server.pl, sporting and showing some initial development,
+Also with this project, provided is now also an web_server.pl (current in early BETA), sporting and showing some initial development,
 how CNFParser **v.2.6** can be powerfully utilised and used for configuring and creating web pages, for your local network.
 
 ## The Concept
@@ -26,7 +26,7 @@ how CNFParser **v.2.6** can be powerfully utilised and used for configuring and 
     * Useful again if an networking application can be run and maintained from one computer. And not having to install it on other computers.
 
 ```mermaid
-stateDiagram-v2
+stateDiagram
     SERVER --> CNFServer
     Clients1..* --> CNFClient
     PC_or_Laptop -->CNFClient
@@ -70,7 +70,6 @@ It doesn't require or goes through any additional network or system layers.
     * Server can also deliver various formats and parts of data, files, from third party services as an central.
 
 ```mermaid
-
 sequenceDiagram
       Client-->>Server: On socket connection request
       Server-->>Client: Connection <<session<{date}>{server hash}>> response
