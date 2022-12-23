@@ -6,14 +6,21 @@ Body: onLoad="initPage()"
     [row[        
         [cell[   
             style: text-align:center; background:#00ffff0d        
-            [h2[IMAGES PAGE]h2]
-        ]cell]
+            [h2[IMAGES PAGE]h2]            
+        ]cell]        
     ]row]
+    [cell[
+            [#[<img src="images/PerlCNF.png" style="float:right"/>]#]
+    ]cell]
 
-    [#[<img src="images/PerlCNF.png" style="float:right"/>]#]
-    
+    ###
+    # list_images instruction does translate each image to be in own row and cell, in uniform way.
+    ###
     [list_images[
-    path = ~/Pictures
+        path = ~/Pictures
+    ]list_images]
+    [list_images[
+        path = ~/Pictures/desk_backgrounds
     ]list_images]
     
     [row[        
@@ -24,14 +31,18 @@ Body: onLoad="initPage()"
     ]row]
 
 
-
-    
-
 >>
 <<HEADER<TREE> _HAS_PROCESSING_PRIORITY_
     [CSS[
         [@@[artifacts/main.css]@@]
     ]CSS]
+[JAVASCRIPT[
+[#[
+    function initPage() {
+        console.log("Images Page loaded and initPage() called");
+    }
+]#]
+]JAVASCRIPT]
 >>
 
 <<CNF_TO_HTML<PLUGIN>

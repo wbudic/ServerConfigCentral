@@ -169,6 +169,6 @@ I stand to be corrected, and all next mentioned is from my own experience and pr
 See also:  [Configuration Network File Format Specifications](https://github.com/wbudic/PerlCNF/CNF_Specs.md)
 
 ---
-   This document v.1.0 is from project ->  (https://github.com/wbudic/ServerConfigCentral)
+   This document v.1.1 is from project ->  (https://github.com/wbudic/ServerConfigCentral)
    An open source application under <https://choosealicense.com/licenses/isc/>
    Exception, this specification file is not to be modified from an third party.

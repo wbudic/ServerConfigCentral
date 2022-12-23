@@ -1,8 +1,16 @@
 !CNF2.6
 
+###
+# Following is the servers settings.
+# Passed directly via this config file, as is. 
+# This configs constance's are the web servers setting.
+###
 <<<CONST
-LocalAddr = nomad
-LocalPort = 8080
+            LocalAddr = localhost
+            LocalPort = 8069
+            ReuseAddr = 1
+            Listen    = 10
+            ReuseAddr = 1            
 >>
 
 <<HOME_PAGE<TREE>
@@ -13,7 +21,7 @@ Body: onLoad="initPage()"
 
     [row[        
         [cell[   
-            style: text-align:center; background:#00ffff0d        
+            style: text-align:center; background:#00ffff0d
             [h2[HOME PAGE]h2]
         ]cell]
     ]row]

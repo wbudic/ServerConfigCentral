@@ -1,34 +1,47 @@
 body{
     font-family: Segoe UI,Helvetica,Bookman,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
-    font-size: 14px;
-    some-background-image: url('configs/docs/images/PerlCNF.png');
+    font-size: 14px;    
     margin: 0; 
     padding:0;  
-}
-div{
-    text-align: left; 
-    font-size: medium;               
-    display: table-cell;
-    padding: 3px 10px;
+    background-image: url('colorful-web_3840x2160.jpg');
 }
 
 .main {
-font-family: Bookman; 
-position: relative;
-text-align: center;
-vertical-align: middle;
-border: 1px solid #999999;
-display: flex;
-justify-content: center;
+    font-family: Bookman; 
+    position: relative;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #999999;
+    display: flex;
+    justify-content: center;
 }
+
+.divTable{
+    display: table;
+    width: 80%;
+}
+
+.divTableBody {
+    display: table-row-group;
+    vertical-align: middle;
+}
+
 .row{
  border:0;
  display: table-row;
  vertical-align: middle;
- margin-bottom:33px
+ margin-bottom:33px;
+ font-size: medium;
 }
 .cell {
     border: 3px solid #00ffff0d;
+    display: table-cell;
+    padding: 3px 10px;
+}
+
+div{
+    text-align: left; 
+    font-size: medium;       
     display: table-cell;
     padding: 3px 10px;
 }

@@ -1,14 +1,40 @@
 <<ABOUT_PAGE<TREE>
 Title:About Page for ACME Industries of Doom
-    [h2[
-        [#[THE ABOUT PAGE]#]
-    ]h2]
-    [div[
-        [#[To contact as you need our details, that have been emailed to you.]#]
-        [div[
-            [#[<img src="images/PerlCNF.png" style="float:right"/>]#]
-        ]div]
-    ]div]
+<*<HEADER>*>
+
+    [row[        
+        [cell[   
+            style: text-align:center; background:#00ffff0d
+            [h2[
+                       [#[THE ABOUT PAGE]#]
+            ]h2]
+        ]cell]
+    ]row]
+
+    [row[
+        [cell[
+            [div[
+                <img<
+                src  =  images/PerlCNF.png
+                style= "float:right"
+                >img>
+                <#<To contact as you need the details, that have been emailed to you.>#>
+            ]div]
+        ]cell]
+    ]row] 
+
+    [row[        
+        [cell[            
+            [h3[ Available Pages ]h3] 
+            [*[file_list_html]*]  
+        ]cell]
+    ]row]
+>>
+
+<<HEADER<TREE> _HAS_PROCESSING_PRIORITY_
+    [CSS[
+        [@@[artifacts/main.css]@@]
+    ]CSS]
 >>
 
 <<CNF_TO_HTML<PLUGIN>

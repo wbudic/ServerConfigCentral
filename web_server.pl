@@ -23,8 +23,12 @@ if (%hdr_no_cache){
     $hdr_no_cache{'Expires'}            = '1s'#`date`;
 }
 my %hdr = %hdr_no_cache; delete %hdr{'Content-Encoding'};
+
+###
 my $server = HTTP::Daemon -> new(%$config) || die ("$@");
 print "HTTP daemon is running at: ", $server->url, "\n";
+###
+
 local $SIG{'INT'} = *interrupt;
 
 sub _ext_to_img_content_type {
@@ -50,31 +54,56 @@ try{
                undef $main_content
             }
             if(!$main_content){
-                if ($r->header('Accept-Encoding') =~ m/gzip/){
-                    $main_content = gzip($$home_page); say "Home page compressed!"
-                }else{ 
+                # if ($r->header('Accept-Encoding') =~ m/gzip/){
+                #     $main_content = gzip($$home_page); say "Home page got compressed!"
+                # }else{ 
                     $main_content = $$home_page
-                }
+                #}
             }
-            $client->send_response(HTTP::Response->new(RC_OK, undef, [%hdr_no_cache], $main_content));
+            $client->send_response(HTTP::Response->new(RC_OK, undef, [%hdr], $main_content));
+        }
+        elsif($r->method eq 'GET' and $local_path =~ /img\@(.*)$/){
+            my $dec = decode_base64($1);
+            say "path decoded: $dec";
+            ($dec=~/.*\.(.*)$/);
+            if(-f  $dec ){        
+                $client->send_response(HTTP::Response->new(RC_OK),undef, ['Content-Type' => _ext_to_img_content_type($1)]);                        
+                $client->send_file($dec);
+            }else{                
+                $client->send_error(RC_NOT_FOUND, qq(Image not found or its link corrupted -> <b>$dec</b><br>
+                                                    <img src='images/RC_NOT_FOUND.jpeg'/><br>
+                                                    <a href="/">Back Home</a>))
+            }
         }
         elsif($r->method eq 'GET' and $local_path =~ /\.(jpg|jpeg|png|gif|JPG|JPEG|PNG|GIF)$/){
               $client->send_response(HTTP::Response->new(RC_OK),undef, ['Content-Type' => _ext_to_img_content_type($1)]);                        
               $client->send_file($local_path);
         }
-        elsif($r->method eq 'GET' and $r->uri->path =~ /\/configs\/docs\/(.*)\.cnf$/){            
-            my $page_name = uc "$1\_PAGE";
-            my $load = CNFParser -> new ( $local_path, {DO_enabled=>1, ANONS_ARE_PUBLIC=>1, ENABLE_WARNINGS=>1, file_list_html=> getFileList()});
-            my $page = ${$load->data()->{$page_name}};
-            #$page = gzip($page) if $r->header('Accept-Encoding') =~ m/gzip/;            
-            $client->send_response(HTTP::Response->new(RC_OK, undef, [%hdr], $page));
+        elsif($r->method eq 'GET' and $r->uri->path =~ /\/configs\/docs\/(.*)\.cnf$/){
+            if(-f  $local_path ){        
+                my $page_name = uc "$1\_PAGE";
+                my $load = CNFParser -> new ( $local_path, {DO_enabled=>1, ANONS_ARE_PUBLIC=>1, ENABLE_WARNINGS=>1, file_list_html=> getFileList(1)});
+                my $page = ${$load->data()->{$page_name}};
+                $page = gzip($page) if $r->header('Accept-Encoding') =~ m/gzip/;            
+                $client->send_response(HTTP::Response->new(RC_OK, undef, [%hdr_no_cache], $page));
+            }else{
+                $client->send_error(RC_NOT_FOUND, qq(No such WEB PerlCNF file -> <b>$local_path</b><br>
+                                                     <img src='images/RC_NOT_FOUND.jpeg'/>"<br>
+                                                     <a href="/">Back Home</a>))
+            }
         }
-        elsif($r->method eq 'GET' and $r->uri->path =~ /\/configs\/docs\/(.*)$/){
-            my $content;
-            open my $fh, "<", $local_path or die ("$!->$local_path"); 
-            $content = <$fh>;
-            close $fh;            
-            $client->send_response(HTTP::Response->new(RC_OK, undef, [%hdr], $content));
+        elsif($r->method eq 'GET' and $r->uri->path =~ /\/configs\/docs\/.*(.*)$/){
+            if(-f  $local_path ){
+                my $content;
+                open my $fh, "<", $local_path or die ("$!->$local_path"); 
+                local $/ = undef;
+                $content = <$fh>;
+                close $fh;            
+                $client->send_response(HTTP::Response->new(RC_OK, undef, [%hdr], $content));
+                say "send:$local_path\n";
+            }else{
+                $client->send_error(RC_NOT_FOUND)
+            }
         }
         elsif($r->method eq 'GET' and $local_path eq 'favicon.ico'){
             $client->send_response(HTTP::Response->new(RC_OK)); 
@@ -94,11 +123,14 @@ try{
 
 
 sub getFileList {
+    my $relative = shift;
     my $ret ="";
     my @docs = glob('configs/docs/*.cnf');
-    foreach my $lnk(@docs){
-        ($lnk=~/configs\/docs\/(.*)\.cnf$/);
-        $ret .= qq(<a href="$lnk">$1</a>\n);
+    foreach my $lnk(@docs){        
+        ($lnk =~ /configs\/docs\/(.*)\.cnf$/);
+        my $n = $1;
+        $lnk  =~ s/configs\/docs\/// if $relative;
+        $ret .= qq(<div class="row"><a href="$lnk">$n</a></div>\n);
     }
     return '<div>' . $ret . '</div>'
 }

@@ -7,7 +7,7 @@ use Exception::Class ('HTMLProcessorPluginException');
 use feature qw(signatures);
 use Scalar::Util qw(looks_like_number);
 use Date::Manip;
-
+use MIME::Base64;
 
 sub new ($class, $fields={Language=>'English',DateFormat=>'US'}){      
 
@@ -25,7 +25,7 @@ sub new ($class, $fields={Language=>'English',DateFormat=>'US'}){
 # Process config data to contain expected fields and data.
 ###
 sub convert ($self, $parser, $property) {
-    my ($bfHDR,$style,$title, $link, $body_attrs)=("","","","","");
+    my ($bfHDR,$style,$jscript,$title, $link, $body_attrs)=("","","","","","");
      
     my $tree = $parser->anon($property);
     die "Tree property '$property' is not available!" if(!$tree or ref($tree) ne 'CNFNode');
@@ -46,7 +46,9 @@ try{
                 $bfHDR .= qq(\t<script src="$_"></script>\n);
             } 
             my $ps = $link  -> find('STYLE');
-            $style = "<style>\n".  $ps -> val()."</style>" if($ps);
+            $style = "\n<style>\n".  $ps -> val()."</style>" if($ps); 
+            $ps = $link  -> find('JAVASCRIPT');
+            $jscript = "\n<script>\n".  $ps -> val()."</script>" if($ps);
        }
        
        delete $tree -> {'HEADER'};       
@@ -56,13 +58,11 @@ try{
 <!DOCTYPE html>
 <head>
 <title>$title</title>
-$bfHDR
-$style
+$bfHDR $style $jscript
 </head>
 );
     
-    $buffer .= qq(<body$body_attrs><div class="main">
-                            <div class="divTableBody">);
+    $buffer .= qq(<body$body_attrs><div class="main"><div class="divTableBody">);
         foreach 
         my $node($tree->nodes()){  
         my $bf   = build($node);     
@@ -71,6 +71,7 @@ $style
     $buffer .= "</div></div>\n</body>\n</html>\n";
 
     $parser->data()->{$property} = \$buffer;
+
 }catch{
         HTMLProcessorPluginException->throw(error=>$@ ,show_trace=>1);
 }
@@ -111,11 +112,16 @@ sub build {
     }elsif( $name eq 'img' ){
         $bf .= "\t\t<img".placeAttributes($node)."/>\n";
     }elsif($name eq 'list_images'){
-        my @images = glob($node ->{'path'}.'*.*');
+        my @ext = split(',',"jpg,jpeg,png,gif");
+        my $exp = " ".$node ->{'path'}."/*.". join (" ".$node ->{'path'}."/*.", @ext);
+        my @images = glob($exp);
+           $bf .= "\t<div class='row'><div class='cell'><b>Directory: ".$node ->{'path'}. "</b></div></div>";
         foreach my $file(@images){
-            ($file=~/configs\/docs\/(.*)\.cnf$/);
-            $bf .= qq(<div class='row'><div class='cell'><img srv="$file" with='120' height='120'>$1</a><br>\n);
-            $bf .= qq(<a href="$file">$1</a><br>\n</div></div>\n);
+            ($file=~/.*\/(.*)$/);
+            my $fn = $1;
+            my $enc = "img@".encode_base64($file);
+            $bf .= qq(\t<div class='row'><div class='cell'>);
+            $bf .= qq(\t<a href="$enc"><img src="$enc" with='120' height='120'><br>$fn</a>\n</div></div>\n);
         }
     
     }else{
