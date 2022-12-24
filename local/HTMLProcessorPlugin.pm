@@ -7,7 +7,6 @@ use Exception::Class ('HTMLProcessorPluginException');
 use feature qw(signatures);
 use Scalar::Util qw(looks_like_number);
 use Date::Manip;
-use MIME::Base64;
 
 sub new ($class, $fields={Language=>'English',DateFormat=>'US'}){      
 
@@ -79,7 +78,10 @@ $bfHDR $style $jscript
 #
 
 ###
-# Builds the html version out of an CNFNode.
+# Builds the html version out of a CNFNode.
+# CNFNode with specific tags here are converted also here, 
+# those that are out of the scope for normal standard HTML tags.
+# i.e. HTML doesn't have row and cell tags. Neither has meta links syntax.
 ###
 sub build {
     my $node = shift;
@@ -124,14 +126,25 @@ sub build {
             $bf .= qq(\t<a href="$enc"><img src="$enc" with='120' height='120'><br>$fn</a>\n</div></div>\n);
         }
     
-    }else{
+    }elsif($node->{'*'}){ #Links are already captured, in future this might be needed as a relink from here for dynamic stuff?
+            my $lval = $node->{'*'};
+            if($name eq 'file_list_html'){ #Special case where html links are provided.                
+                foreach(split(/\n/,$lval)){
+                     $bf .= qq( [ $_ ] |) if $_
+                }
+                $bf =~ s/\|$//g;
+            }else{ #Generic included link value.
+                $bf .= $lval;
+            }
+    }
+    else{
         $bf .= "\t<".$node->{'name'}.placeAttributes($node).">\n";
             foreach my $n($node->nodes()){                 
                     my $b = build($n);
                     $bf .= "$b\n" if $b;        
             }
-        $bf .= $node->val()."\n" if $node->{'#'};
-        $bf .= "\t</".$node->{'name'}.">\n";
+        $bf .= $node->val() if $node->{'#'};
+        $bf .= "</".$node->{'name'}.">\n";
 
     }
     return $bf;
