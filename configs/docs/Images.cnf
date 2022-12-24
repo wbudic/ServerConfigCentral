@@ -25,7 +25,17 @@ Body: onLoad="initPage()"
     
     [row[        
         [cell[            
-            [h3[ Available Pages ]h3] 
+            [h3[ Available Pages ]h3]             
+            [span[
+                [#[[]#]
+            ]span]
+            <a<
+                href = /
+                [#[Home]#]
+            >a>
+            [span[
+                [#[] |]#]
+            ]span]            
             [*[file_list_html]*]  
         ]cell]
     ]row]

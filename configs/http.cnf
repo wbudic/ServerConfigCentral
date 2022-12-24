@@ -6,11 +6,26 @@
 # This configs constance's are the web servers setting.
 ###
 <<<CONST
-            LocalAddr = localhost
-            LocalPort = 8069
-            ReuseAddr = 1
-            Listen    = 10
-            ReuseAddr = 1            
+            LocalAddr      = localhost
+            LocalPort      = 8069
+            ReuseAddr      = 1
+            Listen         = 10
+            ReuseAddr      = 1
+            UseCompression = 0            
+>>
+###
+# The following is the log settings for the webserver.
+# This is a good example of an CNF configs hash collection scripted format.
+# Something usually hardcoded in perl scripts.
+###
+<<@<%LOG>
+            file      = web_server.log
+            # Should it mirror to console too?
+            console   = 1
+            # Disable/enable output to file at all?
+            enabled   = 0
+            # Tail size cut, set to 0 if no tail cutting is desired.
+            tail      = 1000
 >>
 
 <<HOME_PAGE<TREE>

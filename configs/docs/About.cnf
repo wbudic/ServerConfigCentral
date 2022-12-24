@@ -25,7 +25,23 @@ Title:About Page for ACME Industries of Doom
 
     [row[        
         [cell[            
-            [h3[ Available Pages ]h3] 
+            [h3[ Available Pages ]h3]
+
+            # The following show exactly how clearly is specified the home link to translate.
+            # Some might find this debatable. But most would agree it is a heck more readable.
+            # Cramming it in like in normal html, will not work for this tree CNF format.            
+            # i.e. Following will not work: [span[[#[[]#]]span] or [span[ [ ]span]<a<...>a>[span[ ] ]span]
+            #
+            [span[
+                [#[[]#]
+            ]span]
+            <a<
+                href = /
+                [#[Home]#]
+            >a>
+            [span[
+                [#[] |]#]
+            ]span]            
             [*[file_list_html]*]  
         ]cell]
     ]row]

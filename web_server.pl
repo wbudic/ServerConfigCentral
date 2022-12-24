@@ -7,7 +7,7 @@ use HTTP::Status;
 use MIME::Base64;
 use Gzip::Faster;
 
-use lib "local";
+use lib "/home/will/dev/ServerConfigCentral/local";
 require CNFParser;
 require CNFNode;
 require HTMLProcessorPlugin;
@@ -23,13 +23,13 @@ if (%hdr_no_cache){
     $hdr_no_cache{'Expires'}            = '1s'#`date`;
 }
 my %hdr = %hdr_no_cache; delete %hdr{'Content-Encoding'};
-
+my %log = $config->collection('%LOG'); %log = () if !%log;
 ###
 my $server = HTTP::Daemon -> new(%$config) || die ("$@");
-print "HTTP daemon is running at: ", $server->url, "\n";
-###
-
+&log("HTTP daemon is running at: ". $server->url. "\n");
+&log($config->writeOut());
 local $SIG{'INT'} = *interrupt;
+###
 
 sub _ext_to_img_content_type {
    my $for = shift;
@@ -43,24 +43,27 @@ try{
     while ($client = $server->accept) {        
         while (my $r = $client->get_request) {
             my $local_path = substr $r->uri->path, 1;
-            say "Req:".$r->method." ".$r->uri->path, " encoding:".$r->header('Accept-Encoding');            
+            &log("Req:".$r->method." ".$r->uri->path, " accept-encoding:".$r->header('Accept-Encoding'));            
         if ($r->method eq 'GET' and $r->uri->path eq "/") {            
             my @stat = @{$config->{CNF_STAT}};
             my @curr = stat($config->{CNF_CONTENT});
             if($stat[9] != $curr[9]){
                $config = &getConfig;
                $home_page = $config->data()->{'HOME_PAGE'};
-               say "Reloaded home page: ".$config->{CNF_CONTENT} ." [".$stat[9]. "] with ".$curr[9];
+               &log("Reloaded home page: ".$config->{CNF_CONTENT} ." [".$stat[9]. "] with ".$curr[9]);
                undef $main_content
             }
+            my %header = %hdr;
             if(!$main_content){
-                # if ($r->header('Accept-Encoding') =~ m/gzip/){
-                #     $main_content = gzip($$home_page); say "Home page got compressed!"
-                # }else{ 
+                if ($config->{'UseCompression'} && $r->header('Accept-Encoding') =~ m/gzip/){
+                    $main_content = gzip($$home_page); 
+                    &log("Home page got compressed!");
+                    %header = %hdr_no_cache
+                }else{ 
                     $main_content = $$home_page
-                #}
+                }
             }
-            $client->send_response(HTTP::Response->new(RC_OK, undef, [%hdr], $main_content));
+            $client->send_response(HTTP::Response->new(RC_OK, undef, [%header], $main_content));
         }
         elsif($r->method eq 'GET' and $local_path =~ /img\@(.*)$/){
             my $dec = decode_base64($1);
@@ -84,10 +87,32 @@ try{
                 my $page_name = uc "$1\_PAGE";
                 my $load = CNFParser -> new ( $local_path, {DO_enabled=>1, ANONS_ARE_PUBLIC=>1, ENABLE_WARNINGS=>1, file_list_html=> getFileList(1)});
                 my $page = ${$load->data()->{$page_name}};
-                $page = gzip($page) if $r->header('Accept-Encoding') =~ m/gzip/;            
-                $client->send_response(HTTP::Response->new(RC_OK, undef, [%hdr_no_cache], $page));
+                my %header = %hdr;
+                if ($config->{'UseCompression'} && $r->header('Accept-Encoding') =~ m/gzip/){ 
+                    $page = gzip($page);
+                    %header = %hdr_no_cache
+                }
+                $client->send_response(HTTP::Response->new(RC_OK, undef, [%header], $page));
             }else{
                 $client->send_error(RC_NOT_FOUND, qq(No such WEB PerlCNF file -> <b>$local_path</b><br>
+                                                     <img src='images/RC_NOT_FOUND.jpeg'/>"<br>
+                                                     <a href="/">Back Home</a>))
+            }
+        }
+        elsif($r->method eq 'GET' and $r->uri->path =~ /\/configs\/docs\/(.*)\.html|htm$/i){
+            if(-f  $local_path ){        
+                open (my$fh,'<',$local_path);                
+                my $page = <$fh>;
+                close $fh;
+                my %header = %hdr;
+                if ($config->{'UseCompression'} && $r->header('Accept-Encoding') =~ m/gzip/){ 
+                    $page = gzip($page);
+                    %header = %hdr_no_cache
+                }
+                $client->send_response(HTTP::Response->new(RC_OK, undef, [%header], $page));
+                &log("send:$local_path\n");
+            }else{
+                $client->send_error(RC_NOT_FOUND, qq(No such file -> <b>$local_path</b><br>
                                                      <img src='images/RC_NOT_FOUND.jpeg'/>"<br>
                                                      <a href="/">Back Home</a>))
             }
@@ -100,7 +125,7 @@ try{
                 $content = <$fh>;
                 close $fh;            
                 $client->send_response(HTTP::Response->new(RC_OK, undef, [%hdr], $content));
-                say "send:$local_path\n";
+                &log("send:$local_path\n");
             }else{
                 $client->send_error(RC_NOT_FOUND)
             }
@@ -116,26 +141,52 @@ try{
         undef($client);
     }
 }catch{
+    &log("Server closed by FATAL ERROR:$@");
     $client->close;
-    $server->close();
-    print("Fatal Error: $@");
+    $server->close(); 
 }
 
-
+###
+# Obtains the file list in html format.
+# TODO - Formatting shouldn't be done from here, but rather from the HTMLProcessorPlugin only.
+#        The configs/ directory shouldn't also be bound into the server code, throughout.
+##
 sub getFileList {
     my $relative = shift;
-    my $ret ="";
+    my $ret;
     my @docs = glob('configs/docs/*.cnf');
     foreach my $lnk(@docs){        
         ($lnk =~ /configs\/docs\/(.*)\.cnf$/);
         my $n = $1;
         $lnk  =~ s/configs\/docs\/// if $relative;
-        $ret .= qq(<div class="row"><a href="$lnk">$n</a></div>\n);
+        $ret .= qq(<a href="$lnk">$n</a>\n);
     }
-    return '<div>' . $ret . '</div>'
+    return  $ret;
 }
 
 sub interrupt {    
+    &log("Server closed by interruption.");
     $server->close();
 	exit 0;
 };
+
+sub log {
+	my $message = shift;
+    my $attach = join @_; $message .= $attach if $attach;
+	(my $sec, my $min, my $hour, my $mday, my $mon, my $year) = gmtime();
+	$mon++;
+	$mon   = sprintf("%0.2d", $mon);
+	$mday  = sprintf("%0.2d", $mday);
+	$hour  = sprintf("%0.2d", $hour);
+	$min   = sprintf("%0.2d", $min);
+	$sec   = sprintf("%0.2d", $sec);
+	$year += 1900;
+	my $time = qq{$year/$mon/$mday $hour:$min:$sec};
+    
+    say $time . " " . $message if $log{console};
+    if($log{enabled}&&$message){
+        open (my $fh, ">>", $log{file}) or die ("$!");
+        print $fh $time . " - " . $message ."\n";
+        close $fh;
+    }
+}
