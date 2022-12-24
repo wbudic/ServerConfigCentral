@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+use v5.30;
+#use warnings; use strict; 
 use Syntax::Keyword::Try;
 use Date::Manip;
 use Term::ANSIColor qw(:constants);
@@ -16,6 +18,7 @@ try{
 }
 
 my $TEST_LOCAL_DIR = './tests';
+my @failed;
 
 ###
 #  Notice - All test are to be run from the project directory.
@@ -57,7 +60,9 @@ try{
             $test_cases+= $test_ret[0];
         }else{
             $test_fail++;
-            print BOLD RED "Failed Test File -> ", WHITE, "$file\n", RESET
+            my $failed = BOLD. RED. "Failed Test File -> ". WHITE. $file."\n". RESET;
+            print $failed;
+            $failed[@failed] = $failed;
         }
         
     }
@@ -70,15 +75,21 @@ try{
         "\tFailed test file count: ", BOLD RED,"$test_fail\n",BLUE,
         "\tPassed test count: $test_pass\n",
         "\tNumber of test cases run: $test_cases\n",
-        WHITE, "Finished with test Suit ->$0\n", RESET;
+        join  "",@failed,
+        BOLD WHITE, "Finished with test Suit ->$0\n", RESET;
 
     }elsif($test_pass){
         print BOLD BLUE "Test files ($test_pass of them), having $test_cases cases. Have all ", BRIGHT_GREEN ,"SUCCESSFULLY PASSED!", RESET, WHITE,
-                    " (".(scalar localtime).")".BOLD.BLUE."\nFor Test Suit:", RESET WHITE, " $0\n", RESET
+                    " (".(scalar localtime).")".BOLD.BLUE."\nFor Test Suit:", RESET WHITE, " $0 [\n";
+            foreach (@files) {
+                 print WHITE, "\t\t\t$_\n",;
+            }
+            print "\t\t]\n",RESET;
                    
     }else{
         print BOLD BRIGHT_RED, "No tests have been run or found!", RESET WHITE, " $0\n", RESET;
     }
+
     if(%WARN){
         print BOLD YELLOW, "Buddy, sorry to tell you. But you got the following Perl Issues:\n",BLUE;
         foreach(keys %WARN){        
