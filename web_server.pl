@@ -40,7 +40,11 @@ return CNFParser -> new ('configs/http.cnf',{DO_enabled=>1, ANONS_ARE_PUBLIC=>1,
 }
 my $client;
 try{    
-    while ($client = $server->accept) {        
+    #TODO Thread lock client synchronize access to this block. So browser doesn't lock into req. access.
+    #     That is, each client must finish before another span socket can have access to this block of code.
+    #     Parallel possible client assignment is not possible. Also making a new process on each accept is an overkill for this application.
+    #     Standard installed perl running this app, might not be compiled with threads available, hence not implemented yet.
+    while (my $client = $server->accept) {        
         while (my $r = $client->get_request) {
             my $local_path = substr $r->uri->path, 1;
             &log("Req:".$r->method." ".$r->uri->path, " accept-encoding:".$r->header('Accept-Encoding'));            
@@ -141,8 +145,7 @@ try{
         undef($client);
     }
 }catch{
-    &log("Server closed by FATAL ERROR:$@");
-    $client->close;
+    &log("Server closed by FATAL ERROR:$@");    
     $server->close(); 
 }
 
