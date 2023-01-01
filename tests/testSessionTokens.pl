@@ -8,12 +8,14 @@ require CNF_CBC;
 
 my $test = TestManager -> new($0);
 
-use Syntax::Keyword::Try; try{   
+use Syntax::Keyword::Try; try {   
+
+
 
     ###
     # Test encryption.
     ###    
-    my $text = "Hello Wolrd!"; 
+    my $text = "Hello World!"; 
     my $central =  CNFCentral-> new();
     my $token = checkGenerateSessionToken();
        my $cbc = CNF_CBC->initCBC($token,'ID_TEST');
