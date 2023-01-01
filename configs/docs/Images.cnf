@@ -1,6 +1,6 @@
 <<IMAGES_PAGE<TREE>
 Title:Images Page 
-Body: onLoad="initPage()"
+Body: onLoad="initPage()" style="background-image: url('artifacts/colorful-web_3840x2160.jpg');"
 <*<HEADER>*>
 
     [row[        
@@ -10,24 +10,30 @@ Body: onLoad="initPage()"
         ]cell]        
     ]row]
     [cell[
-            [#[<img src="images/PerlCNF.png" style="float:right"/>]#]
+            [#[
+                <img src="images/PerlCNF.png" style="float:left"/>
+                <a name="top"></a><a href="#bottom">To Bottom</a>
+            ]#]            
     ]cell]
 
     ###
     # list_images instruction does translate each image to be in own row and cell, in uniform way.
     ###
     [list_images[
-        path = ~/Pictures
-    ]list_images]
-    [list_images[
-        path = ~/Pictures/desk_backgrounds
+        [@@[~/Pictures]@@]
+        [@@[~/Pictures/desk_backgrounds]@@]
     ]list_images]
     
     [row[        
         [cell[            
-            [h3[ Available Pages ]h3]             
+            [h3[ Available Pages ]h3]
+            <a<
+                name = bottom
+            >a>             
             [span[
-                [#[[]#]
+                [#[
+                    [
+                ]#]
             ]span]
             <a<
                 href = /

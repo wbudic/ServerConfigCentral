@@ -1015,16 +1015,19 @@ sub writeOut { my ($self, $handle, $property) = @_;
             my $val = $self->{$key};
             next if(ref($val) =~ /ARRAY|HASH/); #we write out only what is scriptable.
             if(!$val){
-                $val = "\"\"";
+                if($key =! /^is|^use|^bln|enabled$/i){
+                   $val = 0
+                }else{
+                   $val = "\"\""
+                }
             }
             elsif #Future versions of CNF will account also for multi line values for property attributes.
             ($val =~ /\n/){
-               $val = "<#<\n$val>#>"
+                $val = "<#<\n$val>#>"
             }
             elsif($val !~ /^\d+/){
                 $val = "\"$val\""
-            }
-        
+            }        
             $buffer .= ' 'x$spc. $key .  " = $val\n";     
         }
         $buffer .= ">>\n";

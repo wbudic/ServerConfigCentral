@@ -1,0 +1,150 @@
+<<PERLCNFHELP_PAGE<TREE>
+Title:PerlCNF Help Page
+<*<HEADER>*>
+
+    [row[        
+        [cell[   
+            style: text-align:center; background:#00ffff0d
+            [h2[
+                       [#[PerlCNF Help]#]
+            ]h2]
+        ]cell]
+    ]row]
+
+    [row[
+        [cell[
+            [div[
+                <img<
+                src  =  images/PerlCNF.png
+                style= "float:right"
+                >img>
+                <p<
+                style: vertical-align:middle;
+                <#<
+                    This is just an quick help file on available PerlCNF tags with instructions.
+                >#>
+                >p>
+            ]div]
+        ]cell]
+    ]row] 
+    [row[        
+        [cell[            
+            [h3[ Constance's ]h3]
+            [span[
+                [#[
+                    Constance's are assigned immutable property value pairs.
+                    Set from and assigned to the config file itself.
+                ]#]                
+            ]span] 
+      
+            [pre[
+                    [#[
+                    &#60;&#60;&#60;<span class='cnfI'>CONST</span><span class='V'>
+                    Title   = "My App"
+                    Version = "1.0"
+                    Threads = 5</span>
+                    &#62;&#62;&#62;
+                    ]#]
+            ]pre]
+
+
+            [span[
+                [#[
+                    Or you can specify in single lined as instruction, This will also overwrite any previously assigned property.
+                    As the config is processed in top to down fashion.
+                ]#]                
+            ]span] 
+
+            [pre[
+                    [#[
+                    &#60;&#60;<span class='cnfP'>Title</span>&#60;<span class='cnfI'>CONST</span>&#62;<span class='V'>Help App Now</span>&#62;&#62;
+                    ]#]
+            ]pre]
+
+            [span[
+                [#[
+                    Constance can obtained from config as:
+                    <code><br>
+                    my $config = CNGParser -> new('config.cnf'); <br>
+                    $config->{Title};<br>
+                    </code>   
+                    
+                ]#]                
+            ]span] 
+
+            [span[
+                        [#[
+                        <hr>
+                        ]#]
+            ]span]  
+
+        ]cell]
+        
+    ]row]
+
+    [row[        
+        [cell[            
+            [h3[ Anon's ]h3]
+            [span[
+                [#[
+                    Anon's are mutable property value pairs.
+                    
+                ]#]                
+            ]span] 
+      
+            [pre[
+                    [#[
+                    &#60;&#60;<span class='V'>check</span>&#60;1&#62;&#62;&#62;
+                    ]#]
+            ]pre]
+
+            [span[
+                [#[
+                    Anon can obtained from config via the anon method as: <br>
+                    <code>
+                    my $config = CNGParser -> new('config.cnf');<br>
+                    $config->anon('check');<br>
+                    </code>
+                ]#]                
+            ]span] 
+            
+            [span[
+                        [#[
+                        <hr>
+                        ]#]
+            ]span]  
+
+        ]cell]
+    ]row]
+
+    [row[        
+        [cell[            
+            [h3[ Other Available Pages ]h3]
+            [span[
+                [#[
+                    [
+                ]#]
+            ]span]
+            <a<
+                href = /
+                [#[Home]#]
+            >a>
+            [span[
+                [#[] |]#]
+            ]span]            
+            [*[file_list_html]*]  
+        ]cell]
+    ]row]
+>>
+
+<<HEADER<TREE> _HAS_PROCESSING_PRIORITY_
+    [CSS[
+        [@@[artifacts/main.css]@@]
+    ]CSS]
+>>
+
+<<CNF_TO_HTML<PLUGIN>
+    package     : HTMLProcessorPlugin
+    subroutine  : convert
+    property    : PERLCNFHELP_PAGE
+>>

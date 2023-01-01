@@ -18,22 +18,26 @@ Title:About Page for ACME Industries of Doom
                 src  =  images/PerlCNF.png
                 style= "float:right"
                 >img>
-                <#<To contact as you need the details, that have been emailed to you.>#>
+                
+                <p<
+                    style: vertical-align:middle;
+                    <#<
+                        To contact as you need the details, that have been emailed to you.
+                    >#>
+                >p>
             ]div]
         ]cell]
     ]row] 
 
+  
+
     [row[        
         [cell[            
-            [h3[ Available Pages ]h3]
-
-            # The following show exactly how clearly is specified the home link to translate.
-            # Some might find this debatable. But most would agree it is a heck more readable.
-            # Cramming it in like in normal html, will not work for this tree CNF format.            
-            # i.e. Following will not work: [span[[#[[]#]]span] or [span[ [ ]span]<a<...>a>[span[ ] ]span]
-            #
+            [h3[ Other Available Pages ]h3]
             [span[
-                [#[[]#]
+                [#[
+                    [
+                ]#]
             ]span]
             <a<
                 href = /
@@ -45,6 +49,19 @@ Title:About Page for ACME Industries of Doom
             [*[file_list_html]*]  
         ]cell]
     ]row]
+    [row[        
+        [cell[            
+            [h3[ Developer Message To All Those That Only Say NO! ]h3]
+    [#[
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/bUpRGQtOtGs" 
+    title="YouTube video player" frameborder="0" allow="accelerometer; autoplay;
+    clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+    </iframe>
+    ]#]
+    ]cell]
+    ]row]
+
+
 >>
 
 <<HEADER<TREE> _HAS_PROCESSING_PRIORITY_

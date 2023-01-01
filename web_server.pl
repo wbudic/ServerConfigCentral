@@ -4,13 +4,16 @@ use warnings; use strict; use Syntax::Keyword::Try;
 use HTTP::Headers;
 use HTTP::Daemon;
 use HTTP::Status;
-use MIME::Base64;
 use Gzip::Faster;
+use threads;
+use threads::shared;
+use Thread::Semaphore;
 
 use lib "/home/will/dev/ServerConfigCentral/local";
 require CNFParser;
 require CNFNode;
 require HTMLProcessorPlugin;
+require ShortLink;
 
 my $config = &getConfig; 
 my %hdr_no_cache = $config->collection('%HEADER_NO_CACHE');
@@ -29,6 +32,7 @@ my $server = HTTP::Daemon -> new(%$config) || die ("$@");
 &log("HTTP daemon is running at: ". $server->url. "\n");
 &log($config->writeOut());
 local $SIG{'INT'} = *interrupt;
+my $semaphore = Thread::Semaphore->new();
 ###
 
 sub _ext_to_img_content_type {
@@ -44,7 +48,8 @@ try{
     #     That is, each client must finish before another span socket can have access to this block of code.
     #     Parallel possible client assignment is not possible. Also making a new process on each accept is an overkill for this application.
     #     Standard installed perl running this app, might not be compiled with threads available, hence not implemented yet.
-    while (my $client = $server->accept) {        
+    while (my $client = $server->accept) {   
+        $semaphore -> down();
         while (my $r = $client->get_request) {
             my $local_path = substr $r->uri->path, 1;
             &log("Req:".$r->method." ".$r->uri->path, " accept-encoding:".$r->header('Accept-Encoding'));            
@@ -70,21 +75,29 @@ try{
             $client->send_response(HTTP::Response->new(RC_OK, undef, [%header], $main_content));
         }
         elsif($r->method eq 'GET' and $local_path =~ /img\@(.*)$/){
-            my $dec = decode_base64($1);
+            my $dec = ShortLink::convert($1);
             say "path decoded: $dec";
             ($dec=~/.*\.(.*)$/);
             if(-f  $dec ){        
                 $client->send_response(HTTP::Response->new(RC_OK),undef, ['Content-Type' => _ext_to_img_content_type($1)]);                        
                 $client->send_file($dec);
             }else{                
-                $client->send_error(RC_NOT_FOUND, qq(Image not found or its link corrupted -> <b>$dec</b><br>
+                $client->send_error(RC_NOT_FOUND, qq(Image not found or its link is corrupted -> <b>$dec</b><br>
                                                     <img src='images/RC_NOT_FOUND.jpeg'/><br>
                                                     <a href="/">Back Home</a>))
             }
         }
         elsif($r->method eq 'GET' and $local_path =~ /\.(jpg|jpeg|png|gif|JPG|JPEG|PNG|GIF)$/){
-              $client->send_response(HTTP::Response->new(RC_OK),undef, ['Content-Type' => _ext_to_img_content_type($1)]);                        
-              $client->send_file($local_path);
+               
+              if(-f  $local_path ){        
+                 # $semaphore->up();
+                  $client->send_response(HTTP::Response->new(RC_OK),undef, ['Content-Type' => _ext_to_img_content_type($1)]); 
+                  $client->send_file($local_path);
+                #  $semaphore->down();
+              }else{
+                  &log("NOT FOUND: $local_path\n");            
+                  $client->send_error(RC_NOT_FOUND)
+              }
         }
         elsif($r->method eq 'GET' and $r->uri->path =~ /\/configs\/docs\/(.*)\.cnf$/){
             if(-f  $local_path ){        
@@ -123,17 +136,28 @@ try{
         }
         elsif($r->method eq 'GET' and $r->uri->path =~ /\/configs\/docs\/.*(.*)$/){
             if(-f  $local_path ){
-                my $content;
-                open my $fh, "<", $local_path or die ("$!->$local_path"); 
-                local $/ = undef;
-                $content = <$fh>;
-                close $fh;            
-                $client->send_response(HTTP::Response->new(RC_OK, undef, [%hdr], $content));
+                $client->send_response(HTTP::Response->new(RC_OK),undef, %hdr); 
+                $client->send_file($local_path);               
                 &log("send:$local_path\n");
             }else{
                 $client->send_error(RC_NOT_FOUND)
             }
         }
+        # elsif($r->method eq 'GET' and $r->uri->path =~ /\/configs\/docs\/.*(.*)$/){
+        #     if(-f  $local_path ){
+        #         my $content;
+        #         #$semaphore->up();
+        #         open my $fh, "<", $local_path or die ("$!->$local_path"); 
+        #         local $/ = undef;
+        #         $content = <$fh>;
+        #         close $fh;            
+        #         $client->send_response(HTTP::Response->new(RC_OK, undef, [%hdr], $content));
+        #        # $semaphore->down();
+        #         &log("send:$local_path\n");
+        #     }else{
+        #         $client->send_error(RC_NOT_FOUND)
+        #     }
+        # }
         elsif($r->method eq 'GET' and $local_path eq 'favicon.ico'){
             $client->send_response(HTTP::Response->new(RC_OK)); 
         }
@@ -141,8 +165,9 @@ try{
             $client->send_error(RC_FORBIDDEN)
         }
         }
+        $semaphore -> up();
         $client->close;
-        undef($client);
+        undef($client);        
     }
 }catch{
     &log("Server closed by FATAL ERROR:$@");    
