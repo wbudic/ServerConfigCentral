@@ -9,7 +9,7 @@ use threads;
 use threads::shared;
 use Thread::Semaphore;
 
-use lib "/home/will/dev/ServerConfigCentral/local";
+use lib "local";
 require CNFParser;
 require CNFNode;
 require HTMLProcessorPlugin;

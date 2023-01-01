@@ -1,7 +1,7 @@
 use warnings; use strict;
 use 5.36.0;
-use lib "/home/will/dev/ServerConfigCentral/local";
-use lib "./tests";
+use lib "local";
+use lib "tests";
 
 require TestManager;
 require CNFParser;
