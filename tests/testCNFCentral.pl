@@ -10,10 +10,13 @@ use Syntax::Keyword::Try;
 
 my $test = TestManager -> new($0);
 my $central;
-
+use File::Glob qw(:globally :nocase);
 try{
-   
+   my @ext = split(',',"jpg,jpeg,png,gif");
+   my $exp = " ~/Pictures/*.". join (" ~/Pictures/*.", @ext);
 
+    my @images = glob($exp);#"~/Pictures/*.jpg ~/Pictures/*.png ~/Pictures/*.jpeg ~/Pictures/*.gif");
+    print join "\n", @images;
     ###
     # Test instance creation.
     ###

@@ -269,12 +269,11 @@ sub getRepo {
 }
 
 sub loadConfigs {
-    my ($self,@col) = @_;   
+    my ($self) = shift;   
     my %configs;
     my $cnf = $self->{'parser'};    
-    my $c   = $cnf->collection('@config_files');
-    if($c){
-        @col = @$c;            
+    my @col   = $cnf->collection('@config_files');
+    if(@col){        
         foreach  my $file(@col){
             my $path = "$cnf->{public_dir}/$file";
             #print "[$path]\n"; 

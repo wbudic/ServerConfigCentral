@@ -1,7 +1,13 @@
+# 
+# Represents a tree node CNF object having children and a parent node if it is not the root.
+# Programed by  : Will Budic
+# Source Origin : https://github.com/wbudic/PerlCNF.git
+# Open Source License -> https://choosealicense.com/licenses/isc/
+#
 package CNFNode;
 use strict;
 use warnings;
-
+use Carp qw(cluck);
 
 sub new {
     my ($class,$attrs, $self) = @_;
@@ -136,7 +142,7 @@ sub node {
         $ret = $self->{'@$'};
         if($ret){
             foreach(@$ret){
-                if ($_->{'name'} eq $name){
+                if ($_->{'_'} eq $name){
                     $ret = $_; last
                 }
             }
@@ -375,6 +381,75 @@ sub process {
     $self->{'@@'} = \@array if @array;
     $self->{'#'} = \$val if $val;
     return $self;
+}
+
+sub validate {
+    my ($self, $script) = @_;
+    my ($tag,$sta,$end,$lnc)=("","","",0); 
+    my (@opening,@closing,@singels);
+    my ($open,$close) = (0,0);
+    my @lines = split(/\n/, $script);
+    foreach my $ln(@lines){
+        $ln =~ s/^\s+|\s+$//g;
+        $lnc++;
+        #print $ln, "<-","\n";            
+        if(length ($ln)){
+            #print $ln, "\n";
+            if($ln =~ /^([<>\[\]])(.*)([<>\[\]])$/ && $1 eq $3){
+                $sta = $1;
+                $tag = $2;
+                $end = $3;
+                my $isClosing = ($sta =~ /[>\]]/) ? 1 : 0;
+                if($tag =~ /^([#\*\@]+)[\[<](.*)[\]>]\/*[#\*\@]+$/){
+
+                }elsif($tag =~ /^(.*)[\[<]\/*(.*)[\]>](.*)$/ && $1 eq $3){
+                    $singels[@singels] = $tag;
+                    next
+                }
+                elsif($isClosing){
+                      push @closing, {T=>$tag, L=>$lnc, N=>($open-$close)};
+                      $close++;                                            
+                }
+                else{
+                      $open++;
+                      push @opening, {T=>$tag, L=>$lnc, N=>($open-$close)};
+                      
+                 }
+            }
+        }
+    }
+    if(@opening != @closing){ 
+       cluck "Opening and clossing tags mismatch!";
+       foreach my $o(@opening){          
+          my $c = pop @closing;
+          if(!$c){
+             warn "Error unclosed tag-> [".$o->{T}.'[ @'.$o->{L}       
+          }
+       }
+       
+    }else{
+       my $errors = 0; my $error_tag; my $nesting;
+       my $cnt = $#opening;
+       for my $i (0..$cnt){
+          my $idx = $cnt - $i;
+          my $o = $opening[$i];          
+          my $c = $closing[$idx];
+          if($o->{T} ne $c->{T} && $o->{N} >= $c->{N}){
+                $idx = $i - ($c->{N} - 1);
+                $c = $closing[$idx] if $idx > -1;
+          }elsif($o->{T} ne $c->{T} && $c->{N} > $o->{N}){
+            $idx = $c->{N} - $o->{N} + 1;
+            $c = $closing[$idx];# if $idx < $cnt;
+          }
+
+          if($o->{T} ne $c->{T}){
+             cluck "Error opening and clossing tags mismatch for ". $o->{T}.'@'.$o->{L}.' with '.$c->{T}.'@'.$c->{L};#." expecting:".$p->{T}. " nesting:".$nesting->{T};            
+             $errors++;
+          }
+       }
+       return $errors;
+    }
+    return 0;
 }
 
 1;

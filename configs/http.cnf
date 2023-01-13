@@ -1,9 +1,8 @@
 !CNF2.6
-
 ###
 # Following is the servers settings.
 # Passed directly via this config file, as is. 
-# This configs constance's are the web servers setting.
+# This configs constance's are the web servers settings.
 ###
 <<<CONST
             LocalAddr      = localhost
@@ -13,9 +12,11 @@
             ReuseAddr      = 1
             UseCompression = 0            
 >>
+
+
 ###
 # The following is the log settings for the webserver.
-# This is a good example of an CNF configs hash collection scripted format.
+# This is a good example of in a CNF config, the hash collection scripted format.
 # Something usually hardcoded in perl scripts.
 ###
 <<@<%LOG>
@@ -23,13 +24,12 @@
             # Should it mirror to console too?
             console   = 1
             # Disable/enable output to file at all?
-            enabled   = 0
+            enabled   = 1
             # Tail size cut, set to 0 if no tail cutting is desired.
-            tail      = 1000
+            tail      = 100
 >>
 
 <<HOME_PAGE<TREE>
-
 Title:Home Page of ACME Industries of Doom
 Body: onLoad="initPage()"
 <*<HEADER>*>
@@ -41,34 +41,24 @@ Body: onLoad="initPage()"
         ]cell]
     ]row]
     [row[        
-        [cell[
+        [cell[            
             [img[
                     src = configs/docs/images/PerlCNF.png
                     style = float:left
             ]img]
             <div<
-
                style: padding-top: 80px;
-
                [#[<b>Hello</b>, Welcome to a simple front page.]#]
             >div>
         ]cell]
     ]row]
-
     [row[        
         [cell[            
             [h3[ Available Pages ]h3] 
             [*[file_list_html]*]  
         ]cell]
     ]row]
-
-
-
-    [#[<img src="images/PerlCNF.png" style="float:left"/>]#]
-
-    
->>
-<<HEADER<TREE> _HAS_PROCESSING_PRIORITY_
+>><<HEADER<TREE> _HAS_PROCESSING_PRIORITY_
 [STYLE[
     [#[
     body{
@@ -154,14 +144,12 @@ Body: onLoad="initPage()"
 
     ]#]
 ]STYLE]
->>
-
-
-<<@<%HEADER_NO_CACHE>
+>><<@<%HEADER_NO_CACHE>
     Content-Type    = text/html
     Cache-control   = no-store, no-cache, must-revalidate, post-check=0, pre-check=0
     pragma          = no-cache
 >>
+
 <<CNF_TO_HTML<PLUGIN>
     package     : HTMLProcessorPlugin
     subroutine  : convert

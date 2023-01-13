@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 use v5.10;
-use warnings; use strict; use Syntax::Keyword::Try; 
+use warnings; use strict; use Syntax::Keyword::Try;
 use HTTP::Headers;
 use HTTP::Daemon;
 use HTTP::Status;
@@ -9,7 +9,7 @@ use threads;
 use threads::shared;
 use Thread::Semaphore;
 
-use lib "local";
+use lib "/home/will/dev/ServerConfigCentral/local";
 require CNFParser;
 require CNFNode;
 require HTMLProcessorPlugin;
@@ -29,8 +29,8 @@ my %hdr = %hdr_no_cache; delete %hdr{'Content-Encoding'};
 my %log = $config->collection('%LOG'); %log = () if !%log;
 ###
 my $server = HTTP::Daemon -> new(%$config) || die ("$@");
-&log("HTTP daemon is running at: ". $server->url. "\n");
-&log($config->writeOut());
+$config->log("HTTP daemon is running at: ". $server->url);
+$config->log($config->writeOut());
 local $SIG{'INT'} = *interrupt;
 my $semaphore = Thread::Semaphore->new();
 ###
@@ -52,21 +52,21 @@ try{
         $semaphore -> down();
         while (my $r = $client->get_request) {
             my $local_path = substr $r->uri->path, 1;
-            &log("Req:".$r->method." ".$r->uri->path, " accept-encoding:".$r->header('Accept-Encoding'));            
+            $config->log("Req:".$r->method." ".$r->uri->path, " accept-encoding:".$r->header('Accept-Encoding'));            
         if ($r->method eq 'GET' and $r->uri->path eq "/") {            
             my @stat = @{$config->{CNF_STAT}};
             my @curr = stat($config->{CNF_CONTENT});
             if($stat[9] != $curr[9]){
                $config = &getConfig;
                $home_page = $config->data()->{'HOME_PAGE'};
-               &log("Reloaded home page: ".$config->{CNF_CONTENT} ." [".$stat[9]. "] with ".$curr[9]);
+               $config->log("Reloaded home page: ".$config->{CNF_CONTENT} ." [".$stat[9]. "] with ".$curr[9]);
                undef $main_content
             }
             my %header = %hdr;
             if(!$main_content){
                 if ($config->{'UseCompression'} && $r->header('Accept-Encoding') =~ m/gzip/){
                     $main_content = gzip($$home_page); 
-                    &log("Home page got compressed!");
+                    $config->log("Home page got compressed!");
                     %header = %hdr_no_cache
                 }else{ 
                     $main_content = $$home_page
@@ -95,7 +95,7 @@ try{
                   $client->send_file($local_path);
                 #  $semaphore->down();
               }else{
-                  &log("NOT FOUND: $local_path\n");            
+                  $config->log("NOT FOUND: $local_path\n");            
                   $client->send_error(RC_NOT_FOUND)
               }
         }
@@ -103,8 +103,12 @@ try{
             if(-f  $local_path ){        
                 my $page_name = uc "$1\_PAGE";
                 my $load = CNFParser -> new ( $local_path, {DO_enabled=>1, ANONS_ARE_PUBLIC=>1, ENABLE_WARNINGS=>1, file_list_html=> getFileList(1)});
-                my $page = ${$load->data()->{$page_name}};
+                my $page = $load->data()->{$page_name};                
                 my %header = %hdr;
+                if(!$page){
+                    $client->send_error(RC_NOT_FOUND,qq(Page property not found:$page_name));                    
+                    last;
+                }
                 if ($config->{'UseCompression'} && $r->header('Accept-Encoding') =~ m/gzip/){ 
                     $page = gzip($page);
                     %header = %hdr_no_cache
@@ -127,7 +131,7 @@ try{
                     %header = %hdr_no_cache
                 }
                 $client->send_response(HTTP::Response->new(RC_OK, undef, [%header], $page));
-                &log("send:$local_path\n");
+                $config->log("send:$local_path");
             }else{
                 $client->send_error(RC_NOT_FOUND, qq(No such file -> <b>$local_path</b><br>
                                                      <img src='images/RC_NOT_FOUND.jpeg'/>"<br>
@@ -138,7 +142,7 @@ try{
             if(-f  $local_path ){
                 $client->send_response(HTTP::Response->new(RC_OK),undef, %hdr); 
                 $client->send_file($local_path);               
-                &log("send:$local_path\n");
+                $config->log("send:$local_path");
             }else{
                 $client->send_error(RC_NOT_FOUND)
             }
@@ -153,7 +157,7 @@ try{
         #         close $fh;            
         #         $client->send_response(HTTP::Response->new(RC_OK, undef, [%hdr], $content));
         #        # $semaphore->down();
-        #         &log("send:$local_path\n");
+        #         $config->log("send:$local_path\n");
         #     }else{
         #         $client->send_error(RC_NOT_FOUND)
         #     }
@@ -170,7 +174,7 @@ try{
         undef($client);        
     }
 }catch{
-    &log("Server closed by FATAL ERROR:$@");    
+    $config->log("Server closed by FATAL ERROR:$@");    
     $server->close(); 
 }
 
@@ -193,28 +197,7 @@ sub getFileList {
 }
 
 sub interrupt {    
-    &log("Server closed by interruption.");
+    $config->log("Server closed by interruption.");
     $server->close();
 	exit 0;
 };
-
-sub log {
-	my $message = shift;
-    my $attach = join @_; $message .= $attach if $attach;
-	(my $sec, my $min, my $hour, my $mday, my $mon, my $year) = gmtime();
-	$mon++;
-	$mon   = sprintf("%0.2d", $mon);
-	$mday  = sprintf("%0.2d", $mday);
-	$hour  = sprintf("%0.2d", $hour);
-	$min   = sprintf("%0.2d", $min);
-	$sec   = sprintf("%0.2d", $sec);
-	$year += 1900;
-	my $time = qq{$year/$mon/$mday $hour:$min:$sec};
-    
-    say $time . " " . $message if $log{console};
-    if($log{enabled}&&$message){
-        open (my $fh, ">>", $log{file}) or die ("$!");
-        print $fh $time . " - " . $message ."\n";
-        close $fh;
-    }
-}
