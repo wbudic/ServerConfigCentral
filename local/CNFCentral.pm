@@ -265,7 +265,7 @@ sub getRepo {
         $self->{'CNF_GLOBAL'} = $cnf;        
         return $cnf;
     }
-    return undef;
+    return
 }
 
 sub loadConfigs {
