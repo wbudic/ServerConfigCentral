@@ -10,8 +10,8 @@
             ReuseAddr      = 1
             Listen         = 10
             ReuseAddr      = 1
-            UseCompression = 0            
->>
+            UseCompression = 1
+>>>
 
 
 ###
@@ -30,15 +30,16 @@
 >>
 
 <<HOME_PAGE<TREE>
-Title:Home Page of ACME Industries of Doom
-Body: onLoad="initPage()"
+Title : Home Page of ACME Industries of Doom
+Body  : onLoad="initPage()"
+
 <*<HEADER>*>
 
-    [row[        
-        [cell[   
+    [row[   
+       [cell[   
             style: text-align:center; background:#00ffff0d
             [h2[HOME PAGE]h2]
-        ]cell]
+        ]cell]        
     ]row]
     [row[        
         [cell[            
@@ -46,10 +47,13 @@ Body: onLoad="initPage()"
                     src = configs/docs/images/PerlCNF.png
                     style = float:left
             ]img]
-            <div<
+            [div[
                style: padding-top: 80px;
-               [#[<b>Hello</b>, Welcome to a simple front page.]#]
-            >div>
+               
+               [#[
+                  <b>Hello</b>, Welcome to a simple front page.
+                ]#]
+            ]div]
         ]cell]
     ]row]
     [row[        
@@ -61,6 +65,7 @@ Body: onLoad="initPage()"
 >><<HEADER<TREE> _HAS_PROCESSING_PRIORITY_
 [STYLE[
     [#[
+            
     body{
         font-family: Segoe UI,Helvetica,Bookman,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
         font-size: 14px;
@@ -78,7 +83,7 @@ Body: onLoad="initPage()"
    .main {
     font-family: Bookman; 
     position: relative;
-    text-align: center;
+    text-align:center;
     vertical-align: middle;
     border: 1px solid #999999;
     display: flex;

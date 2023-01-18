@@ -1,0 +1,5 @@
+[TestingAndDebugging::ProhibitNoWarnings]
+allow = uninitialized once
+[-ControlStructures::ProhibitMutatingListFunctions]
+list_funcs = map grep
+[-Subroutines::ProhibitSubroutinePrototypes]
