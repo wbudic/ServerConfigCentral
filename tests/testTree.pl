@@ -3,7 +3,7 @@ use warnings; use strict;
 use Syntax::Keyword::Try;
 
 use lib "tests";
-use lib "local";
+use lib "local ";
 
 
 require TestManager;

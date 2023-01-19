@@ -9,7 +9,7 @@ use threads;
 use threads::shared;
 use Thread::Semaphore;
 
-use lib "/home/will/dev/ServerConfigCentral/local";
+use lib "local";
 require CNFParser;
 require CNFNode;
 require HTMLProcessorPlugin;
@@ -32,7 +32,7 @@ my $server = HTTP::Daemon -> new(%$config) || die ("$@");
 $config->log("HTTP daemon is running at: ". $server->url);
 $config->log($config->writeOut());
 local $SIG{'INT'} = *interrupt;
-my $semaphore = Thread::Semaphore->new();
+#my $semaphore = Thread::Semaphore->new();
 ###
 
 sub _ext_to_img_content_type {
@@ -40,7 +40,12 @@ sub _ext_to_img_content_type {
    return 'image/'. lc $for;
 }
 sub getConfig{
-return CNFParser -> new ('configs/http.cnf',{DO_enabled=>1, ANONS_ARE_PUBLIC=>1, ENABLE_WARNINGS=>1, file_list_html=> getFileList() }); 
+return CNFParser -> new ('configs/http.cnf',{
+                                             DO_enabled=>1, 
+                                             ANONS_ARE_PUBLIC=>1, 
+                                             ENABLE_WARNINGS=>1, 
+                                             file_list_html=> getFileList(),
+                                             DEBUG=>1 }); 
 }
 my $client;
 try{    
@@ -49,7 +54,7 @@ try{
     #     Parallel possible client assignment is not possible. Also making a new process on each accept is an overkill for this application.
     #     Standard installed perl running this app, might not be compiled with threads available, hence not implemented yet.
     while (my $client = $server->accept) {   
-        $semaphore -> down();
+        #$semaphore -> down();
         while (my $r = $client->get_request) {
             my $local_path = substr $r->uri->path, 1;
             $config->log("Req:".$r->method." ".$r->uri->path, " accept-encoding:".$r->header('Accept-Encoding'));            
@@ -169,7 +174,7 @@ try{
             $client->send_error(RC_FORBIDDEN)
         }
         }
-        $semaphore -> up();
+        #$semaphore -> up();
         $client->close;
         undef($client);        
     }

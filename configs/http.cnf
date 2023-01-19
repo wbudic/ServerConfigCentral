@@ -10,7 +10,7 @@
             ReuseAddr      = 1
             Listen         = 10
             ReuseAddr      = 1
-            UseCompression = 1
+            UseCompression = 0
 >>>
 
 

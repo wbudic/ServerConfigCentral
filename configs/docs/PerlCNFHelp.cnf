@@ -63,17 +63,17 @@ Title:PerlCNF Help Page
 
             [span[
                 [#[
-                    Constance can obtained from config as:
-                    <code><br>
-                    my $config = CNGParser -> new('config.cnf'); <br>
-                    $config->{Title};<br>
-                    </code>   
+                    <b>Constance</b> can obtained from config with:<br><br>
+                    <code>#!/usr/bin/env perl<br>
+                    &nbsp;my $config = CNGParser -> new('config.cnf');<br>
+                    &nbsp;$config->{Title};<br></code>   
                     
                 ]#]                
             ]span] 
 
             [span[
                         [#[
+                        <br>
                         <hr>
                         ]#]
             ]span]  
@@ -100,16 +100,15 @@ Title:PerlCNF Help Page
 
             [span[
                 [#[
-                    Anon can obtained from config via the anon method as: <br>
-                    <code>
-                    my $config = CNGParser -> new('config.cnf');<br>
-                    $config->anon('check');<br>
-                    </code>
+                    A <b>Anon</b> can obtained from config via the anon method with: <br>                    
+                    <code><br>my $config = CNGParser -> new('config.cnf');<br>$config->anon('check');<br></code>
+                    
                 ]#]                
             ]span] 
             
             [span[
                         [#[
+                        <br>
                         <hr>
                         ]#]
             ]span]  

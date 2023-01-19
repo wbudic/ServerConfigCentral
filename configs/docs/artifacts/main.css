@@ -59,21 +59,27 @@ padding: 0 10px
 }
 
 code{
-    font-family: Consolas,"courier new";
-    padding: 2px;
-    font-size: 140%;
-    background-color: beige;
+ 
+    padding: 5px;
+    font-size: 110%;
+    abackground-color: beige;
+   color: rgb(47, 114, 158);
+    filter: drop-shadow(0.6em 0.6em 0.2em);
 }
 
 pre {
 
-    font-family: Consolas,"courier new";
-    color: mediumorchid;
-    background-color:black;
     
-    padding: 2px;
-    font-size: 120%;
-    border: 1px solid blueviolet;   
+    color:goldenrod;
+    background-color:black;
+    border: 2px solid blueviolet;
+    
+    box-shadow: 0.40em 0.40em 0.2em;
+    
+    padding: 10px;
+    font-size: 100%;
+    
+    box-shadow: 0.65em 0.65em 0.3em;
     
 }
 .cnf {    
